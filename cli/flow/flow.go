@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/pinkluz/arcanist/cli"
+	"github.com/pinkluz/arcanist/lib/git"
 )
 
 type flowCmd struct {
@@ -17,7 +18,21 @@ type flowCmd struct {
 }
 
 func (f *flowCmd) run(cmd *cobra.Command, args []string) {
-	fmt.Println("flow")
+	repo, err := git.OpenRepo()
+	if err != nil {
+
+	}
+
+	graph, err := git.GetLocalBranchGraph(repo)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for _, root := range graph.RootNodes {
+		fmt.Println(root.Name)
+	}
+
+	fmt.Println("Ran flow command")
 }
 
 func init() {
@@ -30,14 +45,14 @@ func init() {
 		Run: create.run,
 	}
 
-	create.cmd.Flags().StringVarP(&create.tag, "tag", "t", "", "Asset Tag")
-	create.cmd.MarkFlagRequired("tag")
+	// create.cmd.Flags().StringVarP(&create.tag, "tag", "t", "", "Asset Tag")
+	// create.cmd.MarkFlagRequired("tag")
 
-	create.cmd.Flags().StringVarP(&create.atype, "type", "T", "", "Asset Type")
-	create.cmd.MarkFlagRequired("type")
+	// create.cmd.Flags().StringVarP(&create.atype, "type", "T", "", "Asset Type")
+	// create.cmd.MarkFlagRequired("type")
 
-	create.cmd.Flags().StringVarP(&create.zone, "zone", "z", "", "Assets Zone")
-	create.cmd.MarkFlagRequired("zone")
+	// create.cmd.Flags().StringVarP(&create.zone, "zone", "z", "", "Assets Zone")
+	// create.cmd.MarkFlagRequired("zone")
 
 	cli.GetRoot().AddCommand(create.cmd)
 }
