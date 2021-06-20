@@ -24,9 +24,9 @@ into this
 
 ```
 main
-  mschuett/testing
-  mschuett/arc-flow-init-cmd
-    mschuett/test-branch
+  ├─ mschuett/testing
+  └─ mschuett/arc-flow-init-cmd
+     └─ mschuett/test-branch
 
 master
   mschuett/off-master

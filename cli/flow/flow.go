@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/pinkluz/arcanist/cli"
+	"github.com/pinkluz/arcanist/lib/console"
 	"github.com/pinkluz/arcanist/lib/git"
 )
 
@@ -32,7 +33,8 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 		fmt.Println(root.Name)
 	}
 
-	fmt.Println("Ran flow command")
+	out := console.DrawGraph(*graph, nil)
+	fmt.Println(out)
 }
 
 func init() {
