@@ -1,6 +1,8 @@
 package git
 
 import (
+	"sort"
+
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 )
@@ -25,6 +27,13 @@ func GetLocalBranchGraph(repo *gogit.Repository) (*BranchNodeWrapper, error) {
 			bnw.RootNodes = append(bnw.RootNodes, branch.Node)
 		}
 	}
+
+	// Sort the RootNodes for predictable output all of the downstreams have already been
+	// sorted during thr call to composeBranchNodes and we can't finish the sorting until
+	// the RootNodes have been placed in the BranchNodeWrapper.
+	sort.Slice(bnw.RootNodes, func(i, j int) bool {
+		return bnw.RootNodes[i].Name > bnw.RootNodes[j].Name
+	})
 
 	return bnw, nil
 }
@@ -98,6 +107,12 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 		if tmpBranch.Upstream != "" {
 			branchNodes[tmpBranch.Upstream].Node.Downstream =
 				append(branchNodes[tmpBranch.Upstream].Node.Downstream, tmpBranch.Node)
+
+			// Sort the slice for sanity when being used later to graph to console
+			sort.Slice(branchNodes[tmpBranch.Upstream].Node.Downstream, func(i, j int) bool {
+				return branchNodes[tmpBranch.Upstream].Node.Downstream[i].Name >
+					branchNodes[tmpBranch.Upstream].Node.Downstream[j].Name
+			})
 		}
 	}
 

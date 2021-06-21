@@ -39,37 +39,51 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
 		return ""
 	}
 
-	// Iterate over the root nodes and call draw line on each root node.
 	// This could be part of the recursive drawLine call but is pulled out to
 	// reduce the complexity and allow me to understand this when I read it later.
 	lines := []string{}
 	for _, node := range bnw.RootNodes {
-		lines = append(lines, walkNodes(node, 0)...)
+		lines = append(lines, walkNodes(node, 0, false)...)
 	}
 
-	// fmt.Println(vertical_left, vertical_right, vertical, horizontal, up_right)
-	fmt.Println(strings.Join(lines, "\n"))
-
-	return ""
+	output := strings.Join(lines, "\n")
+	return strings.TrimSuffix(output, "\n")
 }
 
 // Render a single line of the flow output
-func walkNodes(n *git.BranchNode, depth int) []string {
+func walkNodes(n *git.BranchNode, depth int, final bool) []string {
 	var lines []string
 	// If this is a root node we don't output much information for it. If you are using flow
 	// like intended this should matter but may lead to some confusion if you start committing
 	// to a root branch (likely main or master).
-	lines = append(lines, drawLine(n, depth))
+	lines = append(lines, drawLine(n, depth, final))
 
 	if len(n.Downstream) > 0 {
-		for _, node := range n.Downstream {
-			lines = append(lines, walkNodes(node, depth+1)...)
+		for i, node := range n.Downstream {
+			isLastNode := false
+			if len(n.Downstream) == i+1 {
+				isLastNode = true
+			}
+			lines = append(lines, walkNodes(node, depth+1, isLastNode)...)
 		}
 	}
 
 	return lines
 }
 
-func drawLine(n *git.BranchNode, depth int) string {
-	return fmt.Sprintf(strings.Repeat(" ", depth)+"%s", n.Name)
+// draw a single line taking into account all of the options passed in
+func drawLine(n *git.BranchNode, depth int, final bool) string {
+	leadingSpace := strings.Repeat(" ", depth)
+
+	graphLine := vertical_right + horizontal
+	if final {
+		graphLine = up_right + horizontal
+	}
+
+	// Edge case for when printing out a root node
+	if depth == 0 {
+		return fmt.Sprintf("%s", n.Name)
+	}
+
+	return fmt.Sprintf(leadingSpace+"%s %s", graphLine, n.Name)
 }

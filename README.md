@@ -23,12 +23,11 @@ In short it will take the output of `git branch -vvv` and turn it from this
 into this
 
 ```
-main
-  ├─ mschuett/testing
-  └─ mschuett/arc-flow-init-cmd
-     └─ mschuett/test-branch
-
 master
-  mschuett/off-master
-    mschuett/off-master-2
+ └─ mschuett/off-master
+  └─ mschuett/off-master-2
+main
+ ├─ mschuett/testing
+ └─ mschuett/arc-flow-init-cmd
+  └─ mschuett/test-branch
 ```
