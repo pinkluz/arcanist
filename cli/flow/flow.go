@@ -30,6 +30,7 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 	}
 
 	out := console.DrawGraph(*graph, nil)
+
 	fmt.Println(out)
 }
 

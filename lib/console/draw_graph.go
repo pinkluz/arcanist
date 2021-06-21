@@ -43,7 +43,7 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
 	// reduce the complexity and allow me to understand this when I read it later.
 	lines := []string{}
 	for _, node := range bnw.RootNodes {
-		lines = append(lines, walkNodes(node, 0, false)...)
+		lines = append(lines, walkNodes(node, 0, []int{}, false, len(node.Downstream))...)
 	}
 
 	output := strings.Join(lines, "\n")
@@ -51,33 +51,85 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
 }
 
 // Render a single line of the flow output
-func walkNodes(n *git.BranchNode, depth int, final bool) []string {
+func walkNodes(n *git.BranchNode, depth int, openDepths []int, cap bool, numDownstreams int) []string {
 	var lines []string
+
+	if depth > 0 {
+		openDepths = append(openDepths, depth)
+	}
+
+	if cap {
+		openDepths = removeDepthFromSlice(openDepths, depth)
+	}
+
 	// If this is a root node we don't output much information for it. If you are using flow
 	// like intended this should matter but may lead to some confusion if you start committing
 	// to a root branch (likely main or master).
-	lines = append(lines, drawLine(n, depth, final))
+	lines = append(lines, drawLine(n, depth, openDepths, cap))
 
 	if len(n.Downstream) > 0 {
 		for i, node := range n.Downstream {
-			isLastNode := false
-			if len(n.Downstream) == i+1 {
-				isLastNode = true
+			// determine if this is the last node at a given depth and if the |_ bracket
+			// needs to be used instead of a |-.
+			cap := false
+			if i+1 == len(n.Downstream) {
+				cap = true
 			}
-			lines = append(lines, walkNodes(node, depth+1, isLastNode)...)
+
+			lines = append(lines, walkNodes(node, depth+1, openDepths, cap, len(node.Downstream))...)
 		}
 	}
 
 	return lines
 }
 
-// draw a single line taking into account all of the options passed in
-func drawLine(n *git.BranchNode, depth int, final bool) string {
-	leadingSpace := strings.Repeat(" ", depth)
+func removeDepthFromSlice(s []int, depth int) []int {
+	index := -1
+	for idx, num := range s {
+		if num == depth {
+			index = idx
+			break
+		}
+	}
 
-	graphLine := vertical_right + horizontal
-	if final {
-		graphLine = up_right + horizontal
+	ret := make([]int, 0)
+
+	// Didn't find desired depth to remove so we return a copy of the
+	// same array.
+	if index == -1 {
+		return append(ret, s...)
+	}
+
+	ret = append(ret, s[:index]...)
+	return append(ret, s[index+1:]...)
+}
+
+func isDepthOpen(openDepths []int, depth int) bool {
+	for _, openDepth := range openDepths {
+		if openDepth == depth {
+			return true
+		}
+	}
+
+	return false
+}
+
+// draw a single line taking into account all of the options passed in
+func drawLine(n *git.BranchNode, depth int, openDepths []int, cap bool) string {
+
+	padding := ""
+
+	for i := 0; i < depth; i++ {
+		if i != depth && isDepthOpen(openDepths, i) {
+			padding = padding + vertical
+		} else {
+			padding = padding + " "
+		}
+	}
+
+	graphLine := vertical_right
+	if cap {
+		graphLine = up_right
 	}
 
 	// Edge case for when printing out a root node
@@ -85,5 +137,5 @@ func drawLine(n *git.BranchNode, depth int, final bool) string {
 		return fmt.Sprintf("%s", n.Name)
 	}
 
-	return fmt.Sprintf(leadingSpace+"%s %s", graphLine, n.Name)
+	return fmt.Sprintf(padding+"%s %s %v %v %v", graphLine, n.Name, openDepths, cap, depth)
 }

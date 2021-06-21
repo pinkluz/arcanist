@@ -29,3 +29,7 @@ func (b BranchNode) IsLocal() bool {
 func (b BranchNode) IsRoot() bool {
 	return b.Upstream == nil
 }
+
+func (b BranchNode) IsLeafNode() bool {
+	return len(b.Downstream) == 0
+}
