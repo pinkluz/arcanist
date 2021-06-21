@@ -14,6 +14,15 @@ type BranchNode struct {
 	MergeShort string
 	RemoteName string
 
+	Hash          string
+	CommitMsg     string
+	CommitsAhead  int
+	CommitsBehind int
+	LinesAdded    int
+	LinesRemoved  int
+
+	IsActiveBranch bool
+
 	Upstream   *BranchNode
 	Downstream []*BranchNode
 }
@@ -28,8 +37,4 @@ func (b BranchNode) IsLocal() bool {
 // upstream. You can have multiple root nodes in a single git repo.
 func (b BranchNode) IsRoot() bool {
 	return b.Upstream == nil
-}
-
-func (b BranchNode) IsLeafNode() bool {
-	return len(b.Downstream) == 0
 }

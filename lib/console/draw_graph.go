@@ -12,7 +12,7 @@ const (
 	// https://unicode-table.com/en to find the
 	// character you want.  Typically double byte characters are referred to
 	// like this: "Unicode Character 'CROSS MARK' (U+274C)", resulting in a
-	// two byte string like this: "\u274c".
+	// golang string like this: "\u274c".
 
 	vertical_left  = "\u2527" // -|
 	vertical_right = "\u251c" // |-
@@ -137,5 +137,5 @@ func drawLine(n *git.BranchNode, depth int, openDepths []int, cap bool) string {
 		return fmt.Sprintf("%s", n.Name)
 	}
 
-	return fmt.Sprintf(padding+"%s %s %v %v %v", graphLine, n.Name, openDepths, cap, depth)
+	return fmt.Sprintf(padding+"%s %s %s %v %v %v", graphLine, n.Name, n.Hash[:8], openDepths, cap, depth)
 }

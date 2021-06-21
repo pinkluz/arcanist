@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"sort"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -56,16 +57,54 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 	branchNodes := map[string]branchNodeWrapper{}
 
 	for _, branch := range config.Branches {
+		// This might need to be a bit more complex but seems to work for every use case I can
+		// currently think of.
+		ref, err := repo.Reference(plumbing.ReferenceName("refs/heads/"+branch.Name), true)
+		if err != nil {
+			return nil, err
+		}
+
+		commit, err := repo.CommitObject(ref.Hash())
+		if err != nil {
+			return nil, err
+		}
+
+		adds := 0
+		subs := 0
+		stats, _ := commit.Stats()
+		for _, stat := range stats {
+			adds += stat.Addition
+			subs += stat.Deletion
+		}
+
+		ref2, err := repo.Reference(branch.Merge, true)
+		if err == nil {
+			commit2, err := repo.CommitObject(ref2.Hash())
+			if err == nil {
+				x, _ := commit.MergeBase(commit2)
+
+				fmt.Println(len(x))
+			}
+
+		}
+
 		branchNodes[branch.Name] = branchNodeWrapper{
 			RootNode: branch.Merge.String() == "",
 			Upstream: branch.Merge.Short(),
 			Node: &BranchNode{
-				Name:       branch.Name,
-				Merge:      branch.Merge.String(),
-				MergeShort: branch.Merge.Short(),
-				RemoteName: branch.Remote,
-				Upstream:   &BranchNode{},
-				Downstream: make([]*BranchNode, 0),
+				Name:           branch.Name,
+				Merge:          branch.Merge.String(),
+				MergeShort:     branch.Merge.Short(),
+				RemoteName:     branch.Remote,
+				Hash:           ref.Hash().String(),
+				CommitMsg:      commit.Message,
+				CommitsAhead:   0,
+				CommitsBehind:  0,
+				LinesAdded:     adds,
+				LinesRemoved:   subs,
+				IsActiveBranch: false,
+				Upstream:       &BranchNode{},
+				Downstream:     make([]*BranchNode, 0),
 			},
 		}
 	}
