@@ -29,10 +29,6 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 	}
 
-	for _, root := range graph.RootNodes {
-		fmt.Println(root.Name)
-	}
-
 	out := console.DrawGraph(*graph, nil)
 	fmt.Println(out)
 }
