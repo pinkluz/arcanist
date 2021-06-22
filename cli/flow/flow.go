@@ -46,10 +46,10 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 		}
 
 		err = wrk.Checkout(&gogit.CheckoutOptions{
-			Branch: plumbing.ReferenceName(args[0]),
+			Branch: plumbing.ReferenceName("refs/heads/" + args[0]),
 			Create: false,
 			Force:  false,
-			Keep:   false,
+			Keep:   true,
 		})
 
 		if err != nil {
