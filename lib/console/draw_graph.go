@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/pinkluz/arcanist/lib/git"
+	"github.com/pinkluz/arcanist/lib/util"
 )
 
 const (
@@ -137,7 +138,11 @@ func drawLine(n *git.BranchNode, depth int, openDepths []int, cap bool) string {
 		return fmt.Sprintf("%s", n.Name)
 	}
 
-	commit := strings.Split(n.CommitMsg, "\n")
+	commitMsg := "[no commit message found]"
+	commitLines := util.SplitLines(n.CommitMsg)
+	if len(commitLines) > 0 {
+		commitMsg = commitLines[0]
+	}
 
-	return fmt.Sprintf(padding+"%s %s %s +%d:%d- %s", graphLine, n.Name, n.Hash[:8], n.LinesAdded, n.LinesRemoved, commit[0])
+	return fmt.Sprintf(padding+"%s %s %s +%d:%d- %s", graphLine, n.Name, n.Hash[:8], n.CommitsAhead, n.CommitsBehind, commitMsg)
 }

@@ -68,6 +68,18 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 			return nil, err
 		}
 
+		infront := 0
+		behind := 0
+		if branch.Merge.String() != "" {
+			cherryOutput, err := Cherry(branch.Name, branch.Merge.String())
+			if err != nil {
+				return nil, err
+			}
+
+			infront = cherryOutput.InFront
+			behind = cherryOutput.Behind
+		}
+
 		branchNodes[branch.Name] = branchNodeWrapper{
 			RootNode: branch.Merge.String() == "",
 			Upstream: branch.Merge.Short(),
@@ -78,8 +90,8 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 				RemoteName:     branch.Remote,
 				Hash:           ref.Hash().String(),
 				CommitMsg:      commit.Message,
-				CommitsAhead:   0,
-				CommitsBehind:  0,
+				CommitsAhead:   infront,
+				CommitsBehind:  behind,
 				LinesAdded:     0,
 				LinesRemoved:   0,
 				IsActiveBranch: false,
