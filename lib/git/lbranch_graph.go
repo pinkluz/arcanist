@@ -1,7 +1,6 @@
 package git
 
 import (
-	"fmt"
 	"sort"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -69,25 +68,6 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 			return nil, err
 		}
 
-		adds := 0
-		subs := 0
-		stats, _ := commit.Stats()
-		for _, stat := range stats {
-			adds += stat.Addition
-			subs += stat.Deletion
-		}
-
-		ref2, err := repo.Reference(branch.Merge, true)
-		if err == nil {
-			commit2, err := repo.CommitObject(ref2.Hash())
-			if err == nil {
-				x, _ := commit.MergeBase(commit2)
-
-				fmt.Println(len(x))
-			}
-
-		}
-
 		branchNodes[branch.Name] = branchNodeWrapper{
 			RootNode: branch.Merge.String() == "",
 			Upstream: branch.Merge.Short(),
@@ -100,8 +80,8 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 				CommitMsg:      commit.Message,
 				CommitsAhead:   0,
 				CommitsBehind:  0,
-				LinesAdded:     adds,
-				LinesRemoved:   subs,
+				LinesAdded:     0,
+				LinesRemoved:   0,
 				IsActiveBranch: false,
 				Upstream:       &BranchNode{},
 				Downstream:     make([]*BranchNode, 0),

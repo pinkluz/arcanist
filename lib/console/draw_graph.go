@@ -137,5 +137,7 @@ func drawLine(n *git.BranchNode, depth int, openDepths []int, cap bool) string {
 		return fmt.Sprintf("%s", n.Name)
 	}
 
-	return fmt.Sprintf(padding+"%s %s %s %v %v %v", graphLine, n.Name, n.Hash[:8], openDepths, cap, depth)
+	commit := strings.Split(n.CommitMsg, "\n")
+
+	return fmt.Sprintf(padding+"%s %s %s +%d:%d- %s", graphLine, n.Name, n.Hash[:8], n.LinesAdded, n.LinesRemoved, commit[0])
 }
