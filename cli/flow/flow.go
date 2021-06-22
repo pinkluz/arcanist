@@ -2,7 +2,10 @@ package flow
 
 import (
 	"fmt"
+	"os"
 
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/spf13/cobra"
 
 	"github.com/pinkluz/arcanist/cli"
@@ -21,17 +24,41 @@ type flowCmd struct {
 func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 	repo, err := git.OpenRepo()
 	if err != nil {
-
-	}
-
-	graph, err := git.GetLocalBranchGraph(repo)
-	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	out := console.DrawGraph(*graph, nil)
+	switch len(args) {
+	case 0:
+		graph, err := git.GetLocalBranchGraph(repo)
+		if err != nil {
+			fmt.Println(err)
+		}
 
-	fmt.Println(out)
+		out := console.DrawGraph(*graph, nil)
+
+		fmt.Println(out)
+	case 1:
+		wrk, err := repo.Worktree()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		err = wrk.Checkout(&gogit.CheckoutOptions{
+			Branch: plumbing.ReferenceName(args[0]),
+			Create: false,
+			Force:  false,
+			Keep:   false,
+		})
+
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("Checked out branch %s\n", args[0])
+	}
 }
 
 func init() {
