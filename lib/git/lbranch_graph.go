@@ -81,7 +81,7 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 		infront := 0
 		behind := 0
 		if branch.Merge.String() != "" {
-			cherryOutput, err := Cherry(branch.Name, branch.Merge.String())
+			cherryOutput, err := RevList(branch.Name, branch.Merge.String())
 			if err != nil {
 				return nil, err
 			}
@@ -89,8 +89,8 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 			// This is confusing to read but it's beacuse the way cherry outputs the differences between
 			// brannches. When showing the difference in commits between the current and the upstream
 			// you must invert.
-			behind = cherryOutput.InFront
-			infront = cherryOutput.Behind
+			behind = cherryOutput.Behind
+			infront = cherryOutput.InFront
 		}
 
 		branchNodes[branch.Name] = branchNodeWrapper{

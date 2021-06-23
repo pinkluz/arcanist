@@ -1,19 +1,17 @@
 package git
 
 import (
+	"fmt"
 	"os/exec"
-
-	"github.com/pinkluz/arcanist/lib/util"
+	"strconv"
+	"strings"
 )
 
 // Wrapper around raw git commands. These should be replaced when a go-git version
 // of them is added or found. In most cases you might be able to get the same function
 // with go-git but the performance would be horrible.
 
-type CherryOutput struct {
-	AdditionalCommits []string
-	MissingCommits    []string
-
+type RevListOutput struct {
 	InFront int
 	Behind  int
 }
@@ -28,38 +26,30 @@ type CherryOutput struct {
 // + 1d76503e4e9e6c02f8b16de4d85d00f1c26cee70
 // - 0cf6f549060b215ef0790f1680312dc0a39ad58f
 // + 368f0058c013c6f54d32d1abc266ca0c8ff7d3a5
-func Cherry(current string, upstream string) (*CherryOutput, error) {
+func RevList(current string, upstream string) (*RevListOutput, error) {
 
-	co := &CherryOutput{
-		AdditionalCommits: []string{},
-		MissingCommits:    []string{},
-		InFront:           0,
-		Behind:            0,
+	co := &RevListOutput{
+		InFront: 0,
+		Behind:  0,
 	}
 
-	cmd := exec.Command("git", "cherry", current, upstream)
+	cmd := exec.Command("git", "rev-list", "--left-right", "--count",
+		fmt.Sprintf("%s...%s", upstream, current))
 
 	stdout, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
 
-	lines := util.SplitLines(string(stdout))
+	split := strings.Fields(string(stdout))
 
-	for _, line := range lines {
-		if len(line) > 1 {
-			if line[0] == byte('+') {
-				co.AdditionalCommits = append(co.AdditionalCommits, line[1:])
-			}
+	if len(split) == 2 {
+		behind, _ := strconv.Atoi(split[0])
+		ahead, _ := strconv.Atoi(split[1])
 
-			if line[0] == byte('-') {
-				co.MissingCommits = append(co.MissingCommits, line[1:])
-			}
-		}
+		co.Behind = behind
+		co.InFront = ahead
 	}
-
-	co.InFront = len(co.AdditionalCommits)
-	co.Behind = len(co.MissingCommits)
 
 	return co, nil
 }
