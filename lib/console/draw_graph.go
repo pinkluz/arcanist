@@ -136,14 +136,6 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 		}
 	}
 
-	if n.IsActiveBranch && len(padding) > 0 {
-		if o.NoColor {
-			padding = current_branch + padding[1:]
-		} else {
-			padding = color.GreenString(current_branch) + padding[1:]
-		}
-	}
-
 	graphLine := vertical_right
 	if cap {
 		graphLine = up_right
@@ -162,12 +154,21 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 
 	branchPadding := 40 - depth
 
+	branchMarker := ""
+	if n.IsActiveBranch {
+		if o.NoColor {
+			branchMarker = current_branch
+		} else {
+			branchMarker = color.GreenString(current_branch)
+		}
+	}
+
 	fmtStr := []string{
 		color.HiBlackString(padding),
-		color.HiBlackString("%s "),                                    // graphLine
-		color.HiBlueString("%-" + strconv.Itoa(branchPadding) + "s "), // n.Name
-		color.YellowString("%s "),                                     // hashRef
-		color.GreenString("+%d"),                                      // n.CommitsAhead
+		color.HiBlackString("%s "), // graphLine
+		color.HiBlueString("%-"+strconv.Itoa(branchPadding)+"s ") + branchMarker, // n.Name
+		color.YellowString("%s "), // hashRef
+		color.GreenString("+%d"),  // n.CommitsAhead
 		":",
 		color.RedString("%d- "), // n.CommitsBehind
 		"%s",                    // commitMsg
@@ -178,7 +179,7 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 		fmtStr = []string{
 			padding,
 			"%s ", // graphLine
-			"%-" + strconv.Itoa(branchPadding) + "s ", // n.Name
+			"%-" + strconv.Itoa(branchPadding) + "s " + branchMarker, // n.Name
 			"%s ", // hashRef
 			"+%d", // n.CommitsAhead
 			":",
