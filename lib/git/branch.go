@@ -18,8 +18,6 @@ type BranchNode struct {
 	CommitMsg     string
 	CommitsAhead  int
 	CommitsBehind int
-	LinesAdded    int
-	LinesRemoved  int
 
 	IsActiveBranch bool
 

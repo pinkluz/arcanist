@@ -1,6 +1,8 @@
 package git
 
 import (
+	"fmt"
+
 	gogit "github.com/go-git/go-git/v5"
 )
 
@@ -19,7 +21,38 @@ import (
 // In the future this might be changed to also re-parent branches
 func Checkout(repo *gogit.Repository, checkout string, upstream string) error {
 	_, err := repo.Branch(checkout)
-	if err != nil {
+	switch err {
+	case nil:
+		err := CheckoutRaw(checkout)
+		if err != nil {
+			return err
+		}
+	case gogit.ErrBranchNotFound:
+		// The branch wasn't found so we will try and make it
+		if upstream == "" {
+			ref, err := repo.Head()
+			if err != nil {
+				return err
+			}
+
+			if !ref.Name().IsBranch() {
+				// TODO make this more clear
+				return fmt.Errorf("You do not currently have a branch checked out")
+			}
+
+			err = CheckoutTrackRaw(checkout, ref.Name().Short())
+			if err != nil {
+				return err
+			}
+		} else {
+			err = CheckoutTrackRaw(checkout, upstream)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	default:
 		return err
 	}
 

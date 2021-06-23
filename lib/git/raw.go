@@ -21,7 +21,7 @@ type RevListOutput struct {
 //
 // $ git rev-list --left-right --count main...mschuett/test-2
 // 17 1
-func RevList(current string, upstream string) (*RevListOutput, error) {
+func RevListRaw(current string, upstream string) (*RevListOutput, error) {
 
 	co := &RevListOutput{
 		InFront: 0,
@@ -47,4 +47,34 @@ func RevList(current string, upstream string) (*RevListOutput, error) {
 	}
 
 	return co, nil
+}
+
+func CheckoutTrackRaw(branch string, upstream string) error {
+	cmd := exec.Command("git", "checkout", "--track", upstream, "-b", branch)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf(string(output))
+	}
+
+	return nil
+}
+
+func CheckoutRaw(branch string) error {
+	cmd := exec.Command("git", "checkout", branch)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf(string(output))
+	}
+
+	return nil
 }
