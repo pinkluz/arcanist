@@ -52,9 +52,9 @@ func TestSimpleDrawGraph(t *testing.T) {
 
 	expected := strings.TrimSpace(`
 main
- └─ main/branch-1
+ └ main/branch-1                            +0:0- [no commit message found]
 master
- └─ master/branch-1`)
+ └ master/branch-1                          +0:0- [no commit message found]`)
 
 	if out != expected {
 		t.Error("TestSimpleDrawGraph failed")
@@ -263,16 +263,37 @@ func TestComplexDrawGraph(t *testing.T) {
 		},
 	}
 
-	out := DrawGraph(*bnw, nil)
+	out := DrawGraph(*bnw, &DrawGraphOpts{
+		NoColor: true,
+	})
 
 	expected := strings.TrimSpace(`
 main
- └─ main/branch-1
+ ├ main/branch-1                            +0:0- [no commit message found]
+ ├ main/branch-2                            +0:0- [no commit message found]
+ │├ main/branch-2-1                         +0:0- [no commit message found]
+ │├ main/branch-2-2                         +0:0- [no commit message found]
+ ││└ main/branch-2-2-1                      +0:0- [no commit message found]
+ │├ main/branch-2-3                         +0:0- [no commit message found]
+ │└ main/branch-2-4                         +0:0- [no commit message found]
+ │ └ main/branch-2-4-1                      +0:0- [no commit message found]
+ ├ main/branch-3                            +0:0- [no commit message found]
+ ├ main/branch-4                            +0:0- [no commit message found]
+ └ main/branch-5                            +0:0- [no commit message found]
+  ├ main/branch-5-1                         +0:0- [no commit message found]
+  ├ main/branch-5-2                         +0:0- [no commit message found]
+  │└ main/branch-5-2-1                      +0:0- [no commit message found]
+  ├ main/branch-5-3                         +0:0- [no commit message found]
+  └ main/branch-5-4                         +0:0- [no commit message found]
 master
- └─ master/branch-1`)
+ ├ master/branch-1                          +0:0- [no commit message found]
+ ├ master/branch-2                          +0:0- [no commit message found]
+ │└ master/branch-2-1                       +0:0- [no commit message found]
+ ├ master/branch-3                          +0:0- [no commit message found]
+ └ master/branch-4                          +0:0- [no commit message found]`)
 
 	if out != expected {
-		t.Error("TestSimpleDrawGraph failed")
+		t.Error("TestComplexDrawGraph failed")
 		t.Log("Got:")
 		fmt.Println(out)
 		t.Log("Expected:")
@@ -290,7 +311,17 @@ func TestDrawLines(t *testing.T) {
 		Downstream: []*git.BranchNode{},
 	}
 
-	out := drawLine(node, 3, []int{2}, true)
+	out := drawLine(DrawGraphOpts{
+		NoColor: true,
+	}, node, 3, []int{2}, true)
 
-	fmt.Println(out)
+	expected := "  │└ main/branch-5-2-1                      +0:0- [no commit message found]"
+
+	if out != expected {
+		t.Error("TestDrawLines failed")
+		t.Log("Got:")
+		fmt.Println(out)
+		t.Log("Expected:")
+		fmt.Println(expected)
+	}
 }

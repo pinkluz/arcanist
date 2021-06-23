@@ -28,15 +28,16 @@ const (
 // DrawGraphOpts is left for later when we want to allow the user some control
 // over the output. For now it's just empty.
 type DrawGraphOpts struct {
+	NoColor bool
 }
 
 // DrawGraph takes a git.BranchNodeWrapper and renders the output for your
 // console. This is all returned as a string so you can
 func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
-	// internalOpts := opts
-	// if opts == nil {
-	// 	internalOpts = &DrawGraphOpts{}
-	// }
+	internalOpts := opts
+	if opts == nil {
+		internalOpts = &DrawGraphOpts{}
+	}
 
 	// Not much to do here
 	if bnw.IsEmpty() {
@@ -47,7 +48,7 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
 	// reduce the complexity and allow me to understand this when I read it later.
 	lines := []string{}
 	for _, node := range bnw.RootNodes {
-		lines = append(lines, walkNodes(node, 0, []int{}, false, len(node.Downstream))...)
+		lines = append(lines, walkNodes(internalOpts, node, 0, []int{}, false, len(node.Downstream))...)
 	}
 
 	output := strings.Join(lines, "\n")
@@ -55,7 +56,9 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
 }
 
 // Render a single line of the flow output
-func walkNodes(n *git.BranchNode, depth int, openDepths []int, cap bool, numDownstreams int) []string {
+func walkNodes(o *DrawGraphOpts, n *git.BranchNode, depth int,
+	openDepths []int, cap bool, numDownstreams int) []string {
+
 	var lines []string
 
 	if depth > 0 {
@@ -69,7 +72,7 @@ func walkNodes(n *git.BranchNode, depth int, openDepths []int, cap bool, numDown
 	// If this is a root node we don't output much information for it. If you are using flow
 	// like intended this should matter but may lead to some confusion if you start committing
 	// to a root branch (likely main or master).
-	lines = append(lines, drawLine(n, depth, openDepths, cap))
+	lines = append(lines, drawLine(*o, n, depth, openDepths, cap))
 
 	if len(n.Downstream) > 0 {
 		for i, node := range n.Downstream {
@@ -80,7 +83,7 @@ func walkNodes(n *git.BranchNode, depth int, openDepths []int, cap bool, numDown
 				cap = true
 			}
 
-			lines = append(lines, walkNodes(node, depth+1, openDepths, cap, len(node.Downstream))...)
+			lines = append(lines, walkNodes(o, node, depth+1, openDepths, cap, len(node.Downstream))...)
 		}
 	}
 
@@ -119,7 +122,8 @@ func isDepthOpen(openDepths []int, depth int) bool {
 }
 
 // draw a single line taking into account all of the options passed in
-func drawLine(n *git.BranchNode, depth int, openDepths []int, cap bool) string {
+func drawLine(o DrawGraphOpts, n *git.BranchNode,
+	depth int, openDepths []int, cap bool) string {
 
 	padding := ""
 
@@ -153,13 +157,32 @@ func drawLine(n *git.BranchNode, depth int, openDepths []int, cap bool) string {
 		color.HiBlackString(padding),
 		color.HiBlackString("%s "),                                    // graphLine
 		color.HiBlueString("%-" + strconv.Itoa(branchPadding) + "s "), // n.Name
-		color.YellowString("%s "),                                     // n.Hash[:8]
+		color.YellowString("%s "),                                     // hashRef
 		color.GreenString("+%d"),                                      // n.CommitsAhead
 		":",
 		color.RedString("%d- "), // n.CommitsBehind
 		"%s",                    // commitMsg
 	}
 
+	// Looks like someone doesn't like to have fun
+	if o.NoColor {
+		fmtStr = []string{
+			padding,
+			"%s ", // graphLine
+			"%-" + strconv.Itoa(branchPadding) + "s ", // n.Name
+			"%s ", // hashRef
+			"+%d", // n.CommitsAhead
+			":",
+			"%d- ", // n.CommitsBehind
+			"%s",   // commitMsg
+		}
+	}
+
+	hashRef := ""
+	if len(n.Hash) >= 8 {
+		hashRef = n.Hash[:8]
+	}
+
 	return fmt.Sprintf(strings.Join(fmtStr, ""),
-		graphLine, n.Name, n.Hash[:8], n.CommitsAhead, n.CommitsBehind, commitMsg)
+		graphLine, n.Name, hashRef, n.CommitsAhead, n.CommitsBehind, commitMsg)
 }
