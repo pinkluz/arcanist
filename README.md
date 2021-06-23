@@ -24,10 +24,14 @@ into this
 
 ```
 master
- └─ mschuett/off-master
-  └─ mschuett/off-master-2
+ └ mschuett/off-master                     3815e645 +1:0- Outline of arcinist cli
+  └ mschuett/off-master-2                  3815e645 +0:0- Outline of arcinist cli
 main
- ├─ mschuett/testing
- └─ mschuett/arc-flow-init-cmd
-  └─ mschuett/test-branch
+ ├ mschuett/testing                        3815e645 +12:0- Outline of arcinist cli
+ ├ mschuett/test-2                         79ecb72b +8:0- Fairly decent looking arc flow
+ │└ mschuett/testing-deeper-1              79ecb72b +0:0- Fairly decent looking arc flow
+ │ └ mschuett/testing-deeper-2             79ecb72b +0:0- Fairly decent looking arc flow
+ │  └ mschuett/testing-deeper-3            2b2a82c2 +0:0- Trying to get difference in commits
+ └ mschuett/arc-flow-init-cmd              3815e645 +12:0- Outline of arcinist cli
+  └ mschuett/test-branch                   3815e645 +0:0- Outline of arcinist cli
 ```
