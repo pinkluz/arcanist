@@ -24,9 +24,9 @@ type CherryOutput struct {
 // + aeebbde79edd63344ee321b0f6cf6056799c557c
 // + 31f1a58c1076af278f64b6523e9e85abdb8353f5
 // + 8f3dbb5de9d5eb8b47dd064f416f1a4c7e3dda6c
-// + 79ecb72b8211f8458d2c35930a0cff8028c46525
+// - 79ecb72b8211f8458d2c35930a0cff8028c46525
 // + 1d76503e4e9e6c02f8b16de4d85d00f1c26cee70
-// + 0cf6f549060b215ef0790f1680312dc0a39ad58f
+// - 0cf6f549060b215ef0790f1680312dc0a39ad58f
 // + 368f0058c013c6f54d32d1abc266ca0c8ff7d3a5
 func Cherry(current string, upstream string) (*CherryOutput, error) {
 
