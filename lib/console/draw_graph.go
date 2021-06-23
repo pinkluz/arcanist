@@ -137,7 +137,11 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 	}
 
 	if n.IsActiveBranch && len(padding) > 0 {
-		padding = current_branch + padding[1:]
+		if o.NoColor {
+			padding = current_branch + padding[1:]
+		} else {
+			padding = color.GreenString(current_branch) + padding[1:]
+		}
 	}
 
 	graphLine := vertical_right
