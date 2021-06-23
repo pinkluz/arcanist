@@ -169,10 +169,10 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 		color.HiBlackString("%s "), // graphLine
 		color.HiBlueString("%s ") + branchMarker + strings.Repeat(" ", branchPadding-len(n.Name)), // n.Name
 		color.YellowString("%s "), // hashRef
-		color.GreenString("+%d"),  // n.CommitsAhead
+		color.RedString("%d"),     // n.CommitsBehind
 		":",
-		color.RedString("%d- "), // n.CommitsBehind
-		"%s",                    // commitMsg
+		color.GreenString("%d "), // n.CommitsAhead
+		"%s",                     // commitMsg
 	}
 
 	// Looks like someone doesn't like to have fun
@@ -182,10 +182,10 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 			"%s ", // graphLine
 			"%-" + strconv.Itoa(branchPadding) + "s " + branchMarker, // n.Name
 			"%s ", // hashRef
-			"+%d", // n.CommitsAhead
+			"%d",  // n.CommitsBehind
 			":",
-			"%d- ", // n.CommitsBehind
-			"%s",   // commitMsg
+			"%d ", // n.CommitsAhead
+			"%s",  // commitMsg
 		}
 	}
 
@@ -195,5 +195,5 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 	}
 
 	return fmt.Sprintf(strings.Join(fmtStr, ""),
-		graphLine, n.Name, hashRef, n.CommitsAhead, n.CommitsBehind, commitMsg)
+		graphLine, n.Name, hashRef, n.CommitsBehind, n.CommitsAhead, commitMsg)
 }
