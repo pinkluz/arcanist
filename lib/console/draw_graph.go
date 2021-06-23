@@ -156,6 +156,7 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 
 	branchMarker := ""
 	if n.IsActiveBranch {
+		branchPadding = branchPadding - 1
 		if o.NoColor {
 			branchMarker = current_branch
 		} else {
@@ -166,7 +167,7 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 	fmtStr := []string{
 		color.HiBlackString(padding),
 		color.HiBlackString("%s "), // graphLine
-		color.HiBlueString("%-"+strconv.Itoa(branchPadding)+"s ") + branchMarker, // n.Name
+		color.HiBlueString("%s ") + branchMarker + strings.Repeat(" ", branchPadding-len(n.Name)), // n.Name
 		color.YellowString("%s "), // hashRef
 		color.GreenString("+%d"),  // n.CommitsAhead
 		":",
