@@ -23,7 +23,7 @@ const (
 	horizontal     = "\u2500" // -
 	up_right       = "\u2514" // |_
 
-	current_branch = "\u101d" // o
+	current_branch = "\u0e4f" // o
 )
 
 // DrawGraphOpts is left for later when we want to allow the user some control
