@@ -18,11 +18,12 @@ const (
 	// like this: "Unicode Character 'CROSS MARK' (U+274C)", resulting in a
 	// golang string like this: "\u274c".
 
-	vertical_left  = "\u2527" // -|
 	vertical_right = "\u251c" // |-
 	vertical       = "\u2502" // |
 	horizontal     = "\u2500" // -
 	up_right       = "\u2514" // |_
+
+	current_branch = "\u101d" // o
 )
 
 // DrawGraphOpts is left for later when we want to allow the user some control
@@ -133,6 +134,10 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 		} else {
 			padding = padding + " "
 		}
+	}
+
+	if n.IsActiveBranch && len(padding) > 0 {
+		padding = current_branch + padding[1:]
 	}
 
 	graphLine := vertical_right

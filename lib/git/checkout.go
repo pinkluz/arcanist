@@ -18,5 +18,10 @@ import (
 //
 // In the future this might be changed to also re-parent branches
 func Checkout(repo *gogit.Repository, checkout string, upstream string) error {
+	_, err := repo.Branch(checkout)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

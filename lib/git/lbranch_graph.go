@@ -55,6 +55,16 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 	// the expense of a tiny bit more memory.
 	branchNodes := map[string]branchNodeWrapper{}
 
+	head, err := repo.Head()
+	if err != nil {
+		return nil, err
+	}
+
+	currentBranch := ""
+	if head.Name().IsBranch() {
+		currentBranch = head.Name().Short()
+	}
+
 	for _, branch := range config.Branches {
 		// This might need to be a bit more complex but seems to work for every use case I can
 		// currently think of.
@@ -94,7 +104,7 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 				CommitsBehind:  behind,
 				LinesAdded:     0,
 				LinesRemoved:   0,
-				IsActiveBranch: false,
+				IsActiveBranch: branch.Name == currentBranch,
 				Upstream:       &BranchNode{},
 				Downstream:     make([]*BranchNode, 0),
 			},
