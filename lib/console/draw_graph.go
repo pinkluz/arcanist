@@ -2,7 +2,10 @@ package console
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+
+	"github.com/fatih/color"
 
 	"github.com/pinkluz/arcanist/lib/git"
 	"github.com/pinkluz/arcanist/lib/util"
@@ -144,5 +147,19 @@ func drawLine(n *git.BranchNode, depth int, openDepths []int, cap bool) string {
 		commitMsg = commitLines[0]
 	}
 
-	return fmt.Sprintf(padding+"%s %s %s +%d:%d- %s", graphLine, n.Name, n.Hash[:8], n.CommitsAhead, n.CommitsBehind, commitMsg)
+	branchPadding := 40 - depth
+
+	fmtStr := []string{
+		color.HiBlackString(padding),
+		color.HiBlackString("%s "),                                    // graphLine
+		color.HiBlueString("%-" + strconv.Itoa(branchPadding) + "s "), // n.Name
+		color.YellowString("%s "),                                     // n.Hash[:8]
+		color.GreenString("+%d"),                                      // n.CommitsAhead
+		":",
+		color.RedString("%d- "), // n.CommitsBehind
+		"%s",                    // commitMsg
+	}
+
+	return fmt.Sprintf(strings.Join(fmtStr, ""),
+		graphLine, n.Name, n.Hash[:8], n.CommitsAhead, n.CommitsBehind, commitMsg)
 }
