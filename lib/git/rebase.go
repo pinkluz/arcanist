@@ -34,6 +34,11 @@ func RecursiveRebase(repo *gogit.Repository) error {
 		}
 	}
 
+	err = CheckoutRaw(ref.Name().Short())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
