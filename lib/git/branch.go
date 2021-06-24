@@ -2,6 +2,9 @@ package git
 
 type BranchNodeWrapper struct {
 	RootNodes []*BranchNode
+
+	// Easy access for whe runnning cascade
+	BranchMap map[string]*BranchNode
 }
 
 func (b BranchNodeWrapper) IsEmpty() bool {
