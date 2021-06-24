@@ -2,10 +2,7 @@ package console
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
-
-	"github.com/fatih/color"
 
 	"github.com/pinkluz/arcanist/lib/git"
 	"github.com/pinkluz/arcanist/lib/util"
@@ -143,7 +140,13 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 
 	// Edge case for when printing out a root node
 	if depth == 0 {
-		return fmt.Sprintf("%s", n.Name)
+		var rootFmt []string
+		if o.NoColor {
+			rootFmt = nocolor([]string{}, 0, false, true)
+		} else {
+			rootFmt = gloss([]string{}, 0, false, true)
+		}
+		return fmt.Sprintf(strings.Join(rootFmt, ""), n.Name)
 	}
 
 	commitMsg := "[no commit message found]"
@@ -152,41 +155,30 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 		commitMsg = commitLines[0]
 	}
 
-	branchPadding := 40 - depth
-
-	branchMarker := ""
+	// Padding to add to the end of every branch name. This should be a reasonable number
+	// that fits most usecases. The output should look good unless you are using super
+	// long branch names like wow-i-messed-up-that-last-commit-hope-this-fixes-it
+	branchPadding := 40 - depth - len(n.Name)
 	if n.IsActiveBranch {
 		branchPadding = branchPadding - 1
-		if o.NoColor {
-			branchMarker = current_branch
-		} else {
-			branchMarker = color.GreenString(current_branch)
-		}
 	}
 
 	fmtStr := []string{
-		color.HiBlackString(padding),
-		color.HiBlackString("%s "), // graphLine
-		color.HiBlueString("%s ") + branchMarker + strings.Repeat(" ", branchPadding-len(n.Name)), // n.Name
-		color.YellowString("%s "), // hashRef
-		color.RedString("%d"),     // n.CommitsBehind
+		padding,
+		"%s ", // graphLine
+		"%s ", // n.Name
+		"%s ", // hashRef
+		"%d",  // n.CommitsBehind
 		":",
-		color.GreenString("%d "), // n.CommitsAhead
-		"%s",                     // commitMsg
+		"%d ", // n.CommitsAhead
+		"%s",  // commitMsg
 	}
 
 	// Looks like someone doesn't like to have fun
 	if o.NoColor {
-		fmtStr = []string{
-			padding,
-			"%s ", // graphLine
-			"%-" + strconv.Itoa(branchPadding) + "s " + branchMarker, // n.Name
-			"%s ", // hashRef
-			"%d",  // n.CommitsBehind
-			":",
-			"%d ", // n.CommitsAhead
-			"%s",  // commitMsg
-		}
+		fmtStr = nocolor(fmtStr, branchPadding, n.IsActiveBranch, false)
+	} else {
+		fmtStr = gloss(fmtStr, branchPadding, n.IsActiveBranch, false)
 	}
 
 	hashRef := ""
