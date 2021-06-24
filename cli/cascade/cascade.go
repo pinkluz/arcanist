@@ -21,12 +21,8 @@ func (f *cascadeCmd) run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	graph, err := git.GetLocalBranchGraph(repo)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(graph)
+	err = git.RecursiveRebase(repo)
+	fmt.Println(err)
 }
 
 func init() {
