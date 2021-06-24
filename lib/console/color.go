@@ -60,7 +60,6 @@ func basic(s []string, branchPadding int, activeBranch bool, root bool) []string
 
 func gloss(s []string, branchPadding int, activeBranch bool, root bool) []string {
 	line := lipgloss.NewStyle().
-		Bold(true).
 		Foreground(lipgloss.AdaptiveColor{Light: "#2D4059", Dark: "#70A1D7"})
 
 	if root {
@@ -73,23 +72,18 @@ func gloss(s []string, branchPadding int, activeBranch bool, root bool) []string
 	}
 
 	name := lipgloss.NewStyle().
-		Bold(true).
 		Foreground(lipgloss.AdaptiveColor{Light: "#EA5455", Dark: "#F47C7C"})
 
 	hash := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.AdaptiveColor{Light: "#FFD460", Dark: "#F7F48B"})
+		Foreground(lipgloss.AdaptiveColor{Light: "#FCA3CC", Dark: "#F7F48B"})
 
 	commit := lipgloss.NewStyle().
-		Bold(true).
 		Foreground(lipgloss.AdaptiveColor{Light: "#222831", Dark: "#696969"})
 
 	behind := lipgloss.NewStyle().
-		Bold(true).
 		Foreground(lipgloss.AdaptiveColor{Light: "#FA4659", Dark: "#FA4659"})
 
 	ahead := lipgloss.NewStyle().
-		Bold(true).
 		Foreground(lipgloss.AdaptiveColor{Light: "#2EB872", Dark: "#2EB872"})
 
 	f := []string{
