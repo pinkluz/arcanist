@@ -33,5 +33,6 @@ func RecursiveRebase(repo *gogit.Repository) error {
 }
 
 func rebase(n *BranchNode) error {
+
 	return nil
 }

@@ -78,3 +78,7 @@ func CheckoutRaw(branch string) error {
 
 	return nil
 }
+
+func PullRebase() error {
+
+}
