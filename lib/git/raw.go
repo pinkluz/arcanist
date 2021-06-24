@@ -80,5 +80,16 @@ func CheckoutRaw(branch string) error {
 }
 
 func PullRebase() error {
+	cmd := exec.Command("git", "pull", "--rebase")
 
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf(string(output))
+	}
+
+	return nil
 }

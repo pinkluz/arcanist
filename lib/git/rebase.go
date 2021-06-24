@@ -27,12 +27,27 @@ func RecursiveRebase(repo *gogit.Repository) error {
 		return fmt.Errorf("Unable to find branch in local branch map")
 	}
 
-	fmt.Println(val)
+	for _, node := range val.Downstream {
+		err := rebase(node)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
 
 func rebase(n *BranchNode) error {
+	err := CheckoutRaw(n.Name)
+	if err != nil {
+		return err
+	}
 
+	err = PullRebase()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Successful rebase of " + n.Name)
 	return nil
 }
