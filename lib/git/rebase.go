@@ -53,6 +53,13 @@ func rebase(n *BranchNode) error {
 		return err
 	}
 
+	for _, node := range n.Downstream {
+		err := rebase(node)
+		if err != nil {
+			return err
+		}
+	}
+
 	fmt.Println("Successful rebase of " + n.Name)
 	return nil
 }
