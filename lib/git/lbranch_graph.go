@@ -12,8 +12,9 @@ import (
 
 func GetLocalBranchGraph(repo *gogit.Repository) (*BranchNodeWrapper, error) {
 	bnw := &BranchNodeWrapper{
-		RootNodes: []*BranchNode{},
-		BranchMap: map[string]*BranchNode{},
+		RootNodes:           []*BranchNode{},
+		BranchMap:           map[string]*BranchNode{},
+		LongestBranchLength: 0,
 	}
 
 	branches, err := composeBranchNodes(repo)
@@ -22,6 +23,10 @@ func GetLocalBranchGraph(repo *gogit.Repository) (*BranchNodeWrapper, error) {
 	}
 
 	for _, branch := range branches {
+		if len(branch.Node.Name) > bnw.LongestBranchLength {
+			bnw.LongestBranchLength = len(branch.Node.Name)
+		}
+
 		bnw.BranchMap[branch.Node.Name] = branch.Node
 		// Make sure it's a root node and that some other branch cares about it
 		// being in the graph. If it has no downstream it isn't being used at all.

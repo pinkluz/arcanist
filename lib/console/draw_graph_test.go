@@ -313,7 +313,7 @@ func TestDrawLines(t *testing.T) {
 
 	out := drawLine(DrawGraphOpts{
 		NoColor: true,
-	}, node, 3, []int{2}, true)
+	}, node, 3, []int{2}, true, len(node.Name))
 
 	expected := "  │└ main/branch-5-2-1                      0:0 [no commit message found]"
 

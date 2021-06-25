@@ -46,7 +46,7 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
 	// reduce the complexity and allow me to understand this when I read it later.
 	lines := []string{}
 	for _, node := range bnw.RootNodes {
-		lines = append(lines, walkNodes(internalOpts, node, 0, []int{}, false, len(node.Downstream))...)
+		lines = append(lines, walkNodes(internalOpts, node, 0, []int{}, false, bnw.LongestBranchLength)...)
 	}
 
 	output := strings.Join(lines, "\n")
@@ -55,7 +55,7 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
 
 // Render a single line of the flow output
 func walkNodes(o *DrawGraphOpts, n *git.BranchNode, depth int,
-	openDepths []int, cap bool, numDownstreams int) []string {
+	openDepths []int, cap bool, longestBranch int) []string {
 
 	var lines []string
 
@@ -70,7 +70,7 @@ func walkNodes(o *DrawGraphOpts, n *git.BranchNode, depth int,
 	// If this is a root node we don't output much information for it. If you are using flow
 	// like intended this should matter but may lead to some confusion if you start committing
 	// to a root branch (likely main or master).
-	lines = append(lines, drawLine(*o, n, depth, openDepths, cap))
+	lines = append(lines, drawLine(*o, n, depth, openDepths, cap, longestBranch))
 
 	if len(n.Downstream) > 0 {
 		for i, node := range n.Downstream {
@@ -81,7 +81,7 @@ func walkNodes(o *DrawGraphOpts, n *git.BranchNode, depth int,
 				cap = true
 			}
 
-			lines = append(lines, walkNodes(o, node, depth+1, openDepths, cap, len(node.Downstream))...)
+			lines = append(lines, walkNodes(o, node, depth+1, openDepths, cap, longestBranch)...)
 		}
 	}
 
@@ -121,7 +121,7 @@ func isDepthOpen(openDepths []int, depth int) bool {
 
 // draw a single line taking into account all of the options passed in
 func drawLine(o DrawGraphOpts, n *git.BranchNode,
-	depth int, openDepths []int, cap bool) string {
+	depth int, openDepths []int, cap bool, longestBranch int) string {
 
 	padding := ""
 
@@ -155,10 +155,15 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 		commitMsg = commitLines[0]
 	}
 
+	defaultBranchPadding := 40
+	if defaultBranchPadding < longestBranch {
+		defaultBranchPadding = longestBranch + 1
+	}
+
 	// Padding to add to the end of every branch name. This should be a reasonable number
 	// that fits most usecases. The output should look good unless you are using super
 	// long branch names like wow-i-messed-up-that-last-commit-hope-this-fixes-it
-	branchPadding := 40 - depth - len(n.Name)
+	branchPadding := defaultBranchPadding - depth - len(n.Name)
 	if n.IsActiveBranch {
 		branchPadding = branchPadding - 1
 	}

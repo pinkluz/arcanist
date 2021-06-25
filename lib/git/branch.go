@@ -4,7 +4,8 @@ type BranchNodeWrapper struct {
 	RootNodes []*BranchNode
 
 	// Easy access for whe runnning cascade
-	BranchMap map[string]*BranchNode
+	BranchMap           map[string]*BranchNode
+	LongestBranchLength int
 }
 
 func (b BranchNodeWrapper) IsEmpty() bool {
