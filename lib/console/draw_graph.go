@@ -157,7 +157,11 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 
 	defaultBranchPadding := 40
 	if defaultBranchPadding < longestBranch {
-		defaultBranchPadding = longestBranch + 1
+		// +3 is notable here because the padding is used with strings.Repeat which can't have
+		// a negative number. We do +1 because we want a space between the branch name and whatever
+		// comes after it. We do another +2 because if it's the active branch we need to leave space
+		// for the current branch market to be rendered and leave a space on both sides.
+		defaultBranchPadding = longestBranch + 3
 	}
 
 	// Padding to add to the end of every branch name. This should be a reasonable number
