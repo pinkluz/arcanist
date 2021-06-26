@@ -58,6 +58,7 @@ func rebase(n *BranchNode) error {
 
 		// We keep going but we have no reason to try and rebase the downstream branches
 		// as they will all fail as well.
+		fmt.Println("Failed rebase of " + n.Name + " skipping downstream braches")
 		return nil
 	}
 
