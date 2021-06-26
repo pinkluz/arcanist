@@ -76,6 +76,9 @@ func rebase(n *BranchNode, failed []string, success []string) ([]string, []strin
 		if err != nil {
 			return append(failed, f...), append(success, s...), err
 		}
+
+		failed = append(failed, f...)
+		success = append(success, s...)
 	}
 
 	return failed, append(success, n.Name), err
