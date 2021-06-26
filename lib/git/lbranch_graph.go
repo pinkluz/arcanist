@@ -133,12 +133,13 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 				RootNode: true,
 				Upstream: "",
 				Node: &BranchNode{
-					Name:       ref.Name().Short(),
-					Merge:      "",
-					MergeShort: "",
-					RemoteName: "",
-					Upstream:   &BranchNode{},
-					Downstream: make([]*BranchNode, 0),
+					Name:           ref.Name().Short(),
+					Merge:          "",
+					MergeShort:     "",
+					RemoteName:     "",
+					IsActiveBranch: ref.Name().Short() == currentBranch,
+					Upstream:       &BranchNode{},
+					Downstream:     make([]*BranchNode, 0),
 				},
 			}
 		}

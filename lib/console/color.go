@@ -11,13 +11,13 @@ import (
 )
 
 func nocolor(s []string, branchPadding int, activeBranch bool, root bool) []string {
-	if root {
-		return []string{"%s"}
-	}
-
 	marker := ""
 	if activeBranch {
 		marker = current_branch
+	}
+
+	if root {
+		return []string{"%s " + marker}
 	}
 
 	f := []string{
@@ -36,7 +36,7 @@ func nocolor(s []string, branchPadding int, activeBranch bool, root bool) []stri
 
 func basic(s []string, branchPadding int, activeBranch bool, root bool) []string {
 	if root {
-		return []string{"%s"}
+		return []string{"%s %s"}
 	}
 
 	marker := ""
@@ -62,13 +62,13 @@ func gloss(s []string, branchPadding int, activeBranch bool, root bool) []string
 	line := lipgloss.NewStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: "#2D4059", Dark: "#70A1D7"})
 
-	if root {
-		return []string{line.Render("%s")}
-	}
-
 	marker := ""
 	if activeBranch {
 		marker = current_branch
+	}
+
+	if root {
+		return []string{"%s " + marker}
 	}
 
 	name := lipgloss.NewStyle().

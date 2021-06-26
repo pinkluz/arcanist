@@ -5,6 +5,7 @@ import (
 
 	_ "github.com/pinkluz/arcanist/cli/cascade"
 	_ "github.com/pinkluz/arcanist/cli/flow"
+	_ "github.com/pinkluz/arcanist/cli/prune"
 )
 
 func main() {

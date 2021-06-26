@@ -138,13 +138,14 @@ func drawLine(o DrawGraphOpts, n *git.BranchNode,
 		graphLine = up_right
 	}
 
-	// Edge case for when printing out a root node
+	// Edge case for when printing out a root node. We stop and return here
+	// and don't do a bunch of extra formatting.
 	if depth == 0 {
 		var rootFmt []string
 		if o.NoColor {
-			rootFmt = nocolor([]string{}, 0, false, true)
+			rootFmt = nocolor([]string{}, 0, n.IsActiveBranch, true)
 		} else {
-			rootFmt = gloss([]string{}, 0, false, true)
+			rootFmt = gloss([]string{}, 0, n.IsActiveBranch, true)
 		}
 		return fmt.Sprintf(strings.Join(rootFmt, ""), n.Name)
 	}
