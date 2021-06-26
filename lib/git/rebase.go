@@ -81,9 +81,9 @@ func rebase(n *BranchNode, failed []string, success []string, l *pb.ProgressBar)
 	}
 
 	for _, node := range n.Downstream {
+		l.Increment()
 		f, s, err := rebase(node, failed, success, l)
 		if err != nil {
-			l.Increment()
 			return append(failed, f...), append(success, s...), err
 		}
 
