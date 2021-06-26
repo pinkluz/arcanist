@@ -6,6 +6,11 @@ import (
 	gogit "github.com/go-git/go-git/v5"
 )
 
+const (
+	failed_marker  = ""
+	success_marker = ""
+)
+
 func RecursiveRebase(repo *gogit.Repository) error {
 	bnw, err := GetLocalBranchGraph(repo)
 	if err != nil {
@@ -27,12 +32,17 @@ func RecursiveRebase(repo *gogit.Repository) error {
 		return fmt.Errorf("Unable to find branch in local branch map")
 	}
 
+	statusMap := map[string][]string{}
 	for _, node := range val.Downstream {
-		err := rebase(node)
+		failed, success, err := rebase(node, []string{}, []string{})
+		statusMap["failed"] = append(statusMap["failed"], failed...)
+		statusMap["success"] = append(statusMap["success"], success...)
 		if err != nil {
 			return err
 		}
 	}
+
+	fmt.Println(statusMap)
 
 	err = CheckoutRaw(ref.Name().Short())
 	if err != nil {
@@ -42,10 +52,10 @@ func RecursiveRebase(repo *gogit.Repository) error {
 	return nil
 }
 
-func rebase(n *BranchNode) error {
+func rebase(n *BranchNode, failed []string, success []string) ([]string, []string, error) {
 	err := CheckoutRaw(n.Name)
 	if err != nil {
-		return err
+		return append(failed, n.Name), success, err
 	}
 
 	err = PullRebase()
@@ -53,22 +63,20 @@ func rebase(n *BranchNode) error {
 		// Before we fail try to recover from the interactive rebase.
 		err := AbortRebase()
 		if err != nil {
-			return err
+			return append(failed, n.Name), success, err
 		}
 
 		// We keep going but we have no reason to try and rebase the downstream branches
 		// as they will all fail as well.
-		fmt.Println("Failed rebase of " + n.Name + " skipping downstream braches")
-		return nil
+		return append(failed, n.Name), success, err
 	}
 
 	for _, node := range n.Downstream {
-		err := rebase(node)
+		f, s, err := rebase(node, failed, success)
 		if err != nil {
-			return err
+			return append(failed, f...), append(success, s...), err
 		}
 	}
 
-	fmt.Println("Successful rebase of " + n.Name)
-	return nil
+	return failed, append(success, n.Name), err
 }
