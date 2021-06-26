@@ -3,58 +3,68 @@ package git
 import (
 	"fmt"
 
+	"github.com/cheggaaa/pb"
 	gogit "github.com/go-git/go-git/v5"
 )
 
-const (
-	failed_marker  = ""
-	success_marker = ""
-)
+type RecursiveRebaseStatus struct {
+	FailedBraches      []string
+	SuccessfulBranches []string
+}
 
-func RecursiveRebase(repo *gogit.Repository) error {
+func RecursiveRebase(repo *gogit.Repository) (*RecursiveRebaseStatus, error) {
 	bnw, err := GetLocalBranchGraph(repo)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ref, err := repo.Head()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !ref.Name().IsBranch() {
 		// TODO make this more clear
-		return fmt.Errorf("You must be on a branch. Check if you are in a detatched state.")
+		return nil, fmt.Errorf("You must be on a branch. Check if you are in a detatched state.")
 	}
 
 	val, ok := bnw.BranchMap[ref.Name().Short()]
 	if !ok {
-		return fmt.Errorf("Unable to find branch in local branch map")
+		return nil, fmt.Errorf("Unable to find branch in local branch map")
 	}
+
+	fmt.Println(val.CountDownstreams())
+
+	loadingBar := pb.StartNew(val.CountDownstreams())
 
 	statusMap := map[string][]string{}
 	for _, node := range val.Downstream {
-		failed, success, err := rebase(node, []string{}, []string{})
+		failed, success, err := rebase(node, []string{}, []string{}, loadingBar)
 		statusMap["failed"] = append(statusMap["failed"], failed...)
 		statusMap["success"] = append(statusMap["success"], success...)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	fmt.Println(statusMap)
+	ret := &RecursiveRebaseStatus{
+		FailedBraches:      statusMap["failed"],
+		SuccessfulBranches: statusMap["success"],
+	}
 
 	err = CheckoutRaw(ref.Name().Short())
 	if err != nil {
-		return err
+		return ret, err
 	}
 
-	return nil
+	loadingBar.Finish()
+	return ret, err
 }
 
-func rebase(n *BranchNode, failed []string, success []string) ([]string, []string, error) {
+func rebase(n *BranchNode, failed []string, success []string, l *pb.ProgressBar) ([]string, []string, error) {
 	err := CheckoutRaw(n.Name)
 	if err != nil {
+		l.Increment()
 		return append(failed, n.Name), success, err
 	}
 
@@ -63,17 +73,20 @@ func rebase(n *BranchNode, failed []string, success []string) ([]string, []strin
 		// Before we fail try to recover from the interactive rebase.
 		err := AbortRebase()
 		if err != nil {
+			l.Increment()
 			return append(failed, n.Name), success, err
 		}
 
 		// We keep going but we have no reason to try and rebase the downstream branches
 		// as they will all fail as well.
+		l.Increment()
 		return append(failed, n.Name), success, err
 	}
 
 	for _, node := range n.Downstream {
-		f, s, err := rebase(node, failed, success)
+		f, s, err := rebase(node, failed, success, l)
 		if err != nil {
+			l.Increment()
 			return append(failed, f...), append(success, s...), err
 		}
 
@@ -81,5 +94,6 @@ func rebase(n *BranchNode, failed []string, success []string) ([]string, []strin
 		success = append(success, s...)
 	}
 
+	l.Increment()
 	return failed, append(success, n.Name), err
 }

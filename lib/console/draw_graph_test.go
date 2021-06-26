@@ -263,7 +263,7 @@ func TestComplexDrawGraph(t *testing.T) {
 		},
 	}
 
-	out := DrawGraph(*bnw, &DrawGraphOpts{
+	out := DrawGraph(*bnw, &DrawOpts{
 		NoColor: true,
 	})
 
@@ -311,7 +311,7 @@ func TestDrawLines(t *testing.T) {
 		Downstream: []*git.BranchNode{},
 	}
 
-	out := drawLine(DrawGraphOpts{
+	out := drawLine(DrawOpts{
 		NoColor: true,
 	}, node, 3, []int{2}, true, len(node.Name))
 

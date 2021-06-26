@@ -21,8 +21,14 @@ func (f *cascadeCmd) run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	err = git.RecursiveRebase(repo)
-	fmt.Println(err)
+	status, err := git.RecursiveRebase(repo)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if status != nil {
+
+	}
 }
 
 func init() {

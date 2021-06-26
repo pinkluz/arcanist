@@ -25,16 +25,16 @@ const (
 
 // DrawGraphOpts is left for later when we want to allow the user some control
 // over the output. For now it's just empty.
-type DrawGraphOpts struct {
+type DrawOpts struct {
 	NoColor bool
 }
 
 // DrawGraph takes a git.BranchNodeWrapper and renders the output for your
 // console. This is all returned as a string so you can
-func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
+func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawOpts) string {
 	internalOpts := opts
 	if opts == nil {
-		internalOpts = &DrawGraphOpts{}
+		internalOpts = &DrawOpts{}
 	}
 
 	// Not much to do here
@@ -54,7 +54,7 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawGraphOpts) string {
 }
 
 // Render a single line of the flow output
-func walkNodes(o *DrawGraphOpts, n *git.BranchNode, depth int,
+func walkNodes(o *DrawOpts, n *git.BranchNode, depth int,
 	openDepths []int, cap bool, longestBranch int) []string {
 
 	var lines []string
@@ -120,7 +120,7 @@ func isDepthOpen(openDepths []int, depth int) bool {
 }
 
 // draw a single line taking into account all of the options passed in
-func drawLine(o DrawGraphOpts, n *git.BranchNode,
+func drawLine(o DrawOpts, n *git.BranchNode,
 	depth int, openDepths []int, cap bool, longestBranch int) string {
 
 	padding := ""

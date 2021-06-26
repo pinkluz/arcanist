@@ -40,3 +40,31 @@ func (b BranchNode) IsLocal() bool {
 func (b BranchNode) IsRoot() bool {
 	return b.Upstream == nil
 }
+
+// CountDownstreams returns the number of downstreams from the given branch. For instance
+// in the following graph output by flow...
+//
+// master
+//  ├ mschuett/trash-test                                                 c9d98532 1:1 lol
+//  └ mschuett/off-master                                                 539c188a 0:0 wowowowowo
+//   └ mschuett/off-master-2                                              539c188a 0:0 wowowowowo
+//
+// CountDownstreams(master) -> 3
+// CountDownstreams(mschuett/off-master) -> 1
+// CountDownstreams(mschuett/trash-test) -> 0
+func (b BranchNode) CountDownstreams() int {
+	var r func(BranchNode) int
+
+	r = func(n BranchNode) int {
+		count := 0
+
+		for _, node := range n.Downstream {
+			count = count + 1
+			count = count + r(*node)
+		}
+
+		return count
+	}
+
+	return r(b)
+}
