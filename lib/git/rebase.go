@@ -50,7 +50,15 @@ func rebase(n *BranchNode) error {
 
 	err = PullRebase()
 	if err != nil {
-		return err
+		// Before we fail try to recover from the interactive rebase.
+		err := AbortRebase()
+		if err != nil {
+			return err
+		}
+
+		// We keep going but we have no reason to try and rebase the downstream branches
+		// as they will all fail as well.
+		return nil
 	}
 
 	for _, node := range n.Downstream {

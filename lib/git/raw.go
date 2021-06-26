@@ -93,3 +93,18 @@ func PullRebase() error {
 
 	return nil
 }
+
+func AbortRebase() error {
+	cmd := exec.Command("git", "rebase", "--abort")
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf(string(output))
+	}
+
+	return nil
+}
