@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"sort"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -19,7 +20,7 @@ func GetLocalBranchGraph(repo *gogit.Repository) (*BranchNodeWrapper, error) {
 
 	branches, err := composeBranchNodes(repo)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Uable to composeBranchNodes: %s", err.Error())
 	}
 
 	for _, branch := range branches {
@@ -55,7 +56,7 @@ type branchNodeWrapper struct {
 func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, error) {
 	config, err := repo.Config()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Uable to get repo config: %s", err.Error())
 	}
 
 	// Temp struct to allow us to quickly create the graph at
@@ -64,7 +65,7 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 
 	head, err := repo.Head()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Uable to get repo head: %s", err.Error())
 	}
 
 	currentBranch := ""
@@ -75,27 +76,27 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 	for _, branch := range config.Branches {
 		// This might need to be a bit more complex but seems to work for every use case I can
 		// currently think of.
-		ref, err := repo.Reference(plumbing.ReferenceName("refs/heads/"+branch.Name), true)
+		ref, err := repo.Reference(plumbing.ReferenceName("/refs/heads/"+branch.Name), true)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Uable to get branch reference for %s: %s", branch.Name, err.Error())
 		}
 
 		commit, err := repo.CommitObject(ref.Hash())
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Uable to get commitObject: %s", err.Error())
 		}
 
 		infront := 0
 		behind := 0
-		if branch.Merge.String() != "" {
+		// Check if the branch merge point exists still. This happens if you delete a branch with a dependency but
+		// don't clean it up. In this case we just skip trying to get the rev-list which will throw an error.
+		_, err = repo.Reference(plumbing.ReferenceName(branch.Merge.String()), true)
+		if branch.Merge.String() != "" && err == nil {
 			cherryOutput, err := RevListRaw(branch.Name, branch.Merge.String())
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Uable to get rev-list: %s", err.Error())
 			}
 
-			// This is confusing to read but it's beacuse the way cherry outputs the differences between
-			// brannches. When showing the difference in commits between the current and the upstream
-			// you must invert.
 			behind = cherryOutput.Behind
 			infront = cherryOutput.InFront
 		}
@@ -123,7 +124,7 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 	// Get all known branches to make sure we have everything.
 	branches, err := repo.Branches()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Uable to get braches: %s", err.Error())
 	}
 
 	branches.ForEach(func(ref *plumbing.Reference) error {
@@ -150,18 +151,25 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 	// Set all upstream and downstreams in the BranchNodes now that we have
 	// fully populated all branches.
 	for _, tmpBranch := range branchNodes {
+		// if branch upstream doesn't exist just skip it. This means that the branch upstream
+		// was deleted but child branches were not cleaned up.
+		branchUpstream, ok := branchNodes[tmpBranch.Upstream]
+		if !ok {
+			continue
+		}
+
 		if !tmpBranch.RootNode {
-			tmpBranch.Node.Upstream = branchNodes[tmpBranch.Upstream].Node
+			tmpBranch.Node.Upstream = branchUpstream.Node
 		}
 
 		if tmpBranch.Upstream != "" {
-			branchNodes[tmpBranch.Upstream].Node.Downstream =
-				append(branchNodes[tmpBranch.Upstream].Node.Downstream, tmpBranch.Node)
+			branchUpstream.Node.Downstream =
+				append(branchUpstream.Node.Downstream, tmpBranch.Node)
 
 			// Sort the slice for sanity when being used later to graph to console
-			sort.Slice(branchNodes[tmpBranch.Upstream].Node.Downstream, func(i, j int) bool {
-				return branchNodes[tmpBranch.Upstream].Node.Downstream[i].Name >
-					branchNodes[tmpBranch.Upstream].Node.Downstream[j].Name
+			sort.Slice(branchUpstream.Node.Downstream, func(i, j int) bool {
+				return branchUpstream.Node.Downstream[i].Name >
+					branchUpstream.Node.Downstream[j].Name
 			})
 		}
 	}

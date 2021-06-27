@@ -27,6 +27,7 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 		graph, err := git.GetLocalBranchGraph(repo)
 		if err != nil {
 			fmt.Println(err)
+			os.Exit(1)
 		}
 
 		if graph != nil {
