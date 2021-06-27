@@ -29,8 +29,10 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 			fmt.Println(err)
 		}
 
-		out := console.DrawGraph(*graph, nil)
-		fmt.Println(out)
+		if graph != nil {
+			out := console.DrawGraph(*graph, nil)
+			fmt.Println(out)
+		}
 	case 1:
 		err := git.Checkout(repo, args[0], "")
 		if err != nil {
