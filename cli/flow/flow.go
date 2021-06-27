@@ -39,6 +39,7 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 		}
 
 		fmt.Printf("Switched to branch '%s'", args[0])
+		fmt.Println()
 	case 2:
 		err := git.Checkout(repo, args[0], args[1])
 		if err != nil {
@@ -47,6 +48,7 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 		}
 
 		fmt.Printf("Branch %s has been created", args[0])
+		fmt.Println()
 	}
 }
 
