@@ -38,7 +38,7 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 
-		fmt.Printf("Branch %s has been checked out", args[0])
+		fmt.Printf("Switched to branch '%s'", args[0])
 	case 2:
 		err := git.Checkout(repo, args[0], args[1])
 		if err != nil {
