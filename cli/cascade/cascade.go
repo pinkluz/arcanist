@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/pinkluz/arcanist/cli"
+	"github.com/pinkluz/arcanist/lib/console"
 	"github.com/pinkluz/arcanist/lib/git"
 )
 
@@ -27,7 +28,7 @@ func (f *cascadeCmd) run(cmd *cobra.Command, args []string) {
 	}
 
 	if status != nil {
-
+		fmt.Println(console.DrawCascade(*status, nil))
 	}
 }
 
