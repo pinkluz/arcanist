@@ -7,56 +7,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/fatih/color"
 )
-
-func nocolor(s []string, branchPadding int, activeBranch bool, root bool) []string {
-	marker := ""
-	if activeBranch {
-		marker = current_branch
-	}
-
-	if root {
-		return []string{"%s " + marker}
-	}
-
-	f := []string{
-		s[0],
-		s[1], // graphLine
-		s[2] + marker + strings.Repeat(" ", branchPadding), // n.Name
-		s[3], // hashRef
-		s[4], // n.CommitsBehind
-		s[5],
-		s[6], // n.CommitsAhead
-		s[7], // commitMsg
-	}
-
-	return f
-}
-
-func basic(s []string, branchPadding int, activeBranch bool, root bool) []string {
-	if root {
-		return []string{"%s %s"}
-	}
-
-	marker := ""
-	if activeBranch {
-		marker = current_branch
-	}
-
-	f := []string{
-		color.HiBlackString(s[0]),
-		color.HiBlackString(s[1]), // graphLine
-		color.HiBlueString(s[2]) + color.GreenString(marker) + strings.Repeat(" ", branchPadding), // n.Name
-		color.YellowString(s[3]), // hashRef
-		color.RedString(s[4]),    // n.CommitsBehind
-		s[5],
-		color.GreenString(s[6]), // n.CommitsAhead
-		s[7],                    // commitMsg
-	}
-
-	return f
-}
 
 func gloss(s []string, branchPadding int, activeBranch bool, root bool) []string {
 	line := lipgloss.NewStyle().

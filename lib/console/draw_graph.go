@@ -26,7 +26,7 @@ const (
 // DrawGraphOpts is left for later when we want to allow the user some control
 // over the output. For now it's just empty.
 type DrawOpts struct {
-	NoColor bool
+	NoColor bool // Option removed until someone requests this
 }
 
 // DrawGraph takes a git.BranchNodeWrapper and renders the output for your
@@ -141,12 +141,7 @@ func drawLine(o DrawOpts, n *git.BranchNode,
 	// Edge case for when printing out a root node. We stop and return here
 	// and don't do a bunch of extra formatting.
 	if depth == 0 {
-		var rootFmt []string
-		if o.NoColor {
-			rootFmt = nocolor([]string{}, 0, n.IsActiveBranch, true)
-		} else {
-			rootFmt = gloss([]string{}, 0, n.IsActiveBranch, true)
-		}
+		rootFmt := gloss([]string{}, 0, n.IsActiveBranch, true)
 		return fmt.Sprintf(strings.Join(rootFmt, ""), n.Name)
 	}
 
@@ -184,12 +179,7 @@ func drawLine(o DrawOpts, n *git.BranchNode,
 		"%s",  // commitMsg
 	}
 
-	// Looks like someone doesn't like to have fun
-	if o.NoColor {
-		fmtStr = nocolor(fmtStr, branchPadding, n.IsActiveBranch, false)
-	} else {
-		fmtStr = gloss(fmtStr, branchPadding, n.IsActiveBranch, false)
-	}
+	fmtStr = gloss(fmtStr, branchPadding, n.IsActiveBranch, false)
 
 	hashRef := ""
 	if len(n.Hash) >= 8 {
