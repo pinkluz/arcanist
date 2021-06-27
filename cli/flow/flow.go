@@ -33,10 +33,20 @@ func (f *flowCmd) run(cmd *cobra.Command, args []string) {
 		fmt.Println(out)
 	case 1:
 		err := git.Checkout(repo, args[0], "")
-		fmt.Println(err)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("Branch %s has been checked out", args[0])
 	case 2:
 		err := git.Checkout(repo, args[0], args[1])
-		fmt.Println(err)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("Branch %s has been created", args[0])
 	}
 }
 
