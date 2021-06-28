@@ -108,3 +108,18 @@ func AbortRebase() error {
 
 	return nil
 }
+
+func DeleteBranch(branch string) error {
+	cmd := exec.Command("git", "branch", "--delete", branch)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf(string(output))
+	}
+
+	return nil
+}

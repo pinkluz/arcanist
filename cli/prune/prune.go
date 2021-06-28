@@ -13,6 +13,8 @@ import (
 
 type pruneCmd struct {
 	cmd *cobra.Command
+
+	destructive bool
 }
 
 func (f *pruneCmd) run(cmd *cobra.Command, args []string) {
@@ -28,22 +30,30 @@ func (f *pruneCmd) run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	graph, err := git.GetLocalBranchGraph(repo)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	if !f.destructive {
+		graph, err := git.GetLocalBranchGraph(repo)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		prompt := console.DrawPrune()
+		fmt.Println()
+		fmt.Println(prompt)
+		fmt.Println()
+
+		out := console.DrawGraph(*graph, &console.DrawOpts{
+			AvailableForDelete: status.BranchesForRemoval,
+		})
+
+		fmt.Println(out)
+	} else {
+		err = git.DestroyBranches(status.BranchesForRemoval)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
-
-	prompt := console.DrawPrune()
-	fmt.Println()
-	fmt.Println(prompt)
-	fmt.Println()
-
-	out := console.DrawGraph(*graph, &console.DrawOpts{
-		AvailableForDelete: status.BranchesForRemoval,
-	})
-
-	fmt.Println(out)
 }
 
 func init() {
@@ -55,6 +65,8 @@ func init() {
 		to delete ones that have no additional commits compared to its parent branch.`,
 		Run: prune.run,
 	}
+
+	prune.cmd.Flags().BoolVarP(&prune.destructive, "destroy-branches", "d", false, "Delete branches from your local git repo")
 
 	cli.GetRoot().AddCommand(prune.cmd)
 }

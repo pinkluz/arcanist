@@ -38,3 +38,14 @@ func findStale(n *BranchNode) []BranchNode {
 
 	return append(toDelete, *n)
 }
+
+func DestroyBranches(b []BranchNode) error {
+	for _, n := range b {
+		err := DeleteBranch(n.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
