@@ -35,19 +35,16 @@ func RecursiveRebase(repo *gogit.Repository) (*RecursiveRebaseStatus, error) {
 
 	loadingBar := pb.StartNew(val.CountDownstreams())
 	loadingBar.Set(pb.CleanOnFinish, true)
-	statusMap := map[string][]string{}
 	for _, node := range val.Downstream {
-		failed, success, err := rebase(node, []string{}, []string{}, loadingBar)
-		statusMap["failed"] = append(statusMap["failed"], failed...)
-		statusMap["success"] = append(statusMap["success"], success...)
+		err := rebase(node, loadingBar)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	ret := &RecursiveRebaseStatus{
-		FailedBraches:      statusMap["failed"],
-		SuccessfulBranches: statusMap["success"],
+		FailedBraches:      rebaseFailedBranches,
+		SuccessfulBranches: rebaseSuccessBranches,
 	}
 
 	err = CheckoutRaw(ref.Name().Short())
@@ -59,12 +56,18 @@ func RecursiveRebase(repo *gogit.Repository) (*RecursiveRebaseStatus, error) {
 	return ret, err
 }
 
-func rebase(n *BranchNode, failed []string, success []string, l *pb.ProgressBar) ([]string, []string, error) {
+var (
+	rebaseSuccessBranches []string
+	rebaseFailedBranches  []string
+)
+
+func rebase(n *BranchNode, l *pb.ProgressBar) error {
 	l.Increment()
 
 	err := CheckoutRaw(n.Name)
 	if err != nil {
-		return append(failed, n.Name), success, err
+		rebaseFailedBranches = append(rebaseFailedBranches, n.Name)
+		return err
 	}
 
 	err = PullRebase()
@@ -72,23 +75,24 @@ func rebase(n *BranchNode, failed []string, success []string, l *pb.ProgressBar)
 		// Before we fail try to recover from the interactive rebase.
 		err := AbortRebase()
 		if err != nil {
-			return append(failed, n.Name), success, err
+			rebaseFailedBranches = append(rebaseFailedBranches, n.Name)
+			return err
 		}
 
 		// We keep going but we have no reason to try and rebase the downstream branches
 		// as they will all fail as well.
-		return append(failed, n.Name), success, err
+		rebaseFailedBranches = append(rebaseFailedBranches, n.Name)
+		return err
 	}
 
 	for _, node := range n.Downstream {
-		f, s, err := rebase(node, failed, success, l)
+		err := rebase(node, l)
 		if err != nil {
-			return append(failed, f...), append(success, s...), err
+			rebaseFailedBranches = append(rebaseFailedBranches, n.Name)
+			return err
 		}
-
-		failed = append(failed, f...)
-		success = append(success, s...)
 	}
 
-	return failed, append(success, n.Name), err
+	rebaseSuccessBranches = append(rebaseSuccessBranches, n.Name)
+	return err
 }
