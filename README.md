@@ -1,6 +1,7 @@
 # arc
 
-Arc is my knock off version of of the Phabricator arcanist tooling for a similar experience when using branch based workflows.
+Phabricator local development simulator without the phabricator backend :(. Feel free to try and
+break this in any number of ways and post your breakage in the github issues.
 
 ### flow
 
