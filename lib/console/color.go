@@ -9,7 +9,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func gloss(s []string, branchPadding int, activeBranch bool, root bool) []string {
+var prunableBranches = lipgloss.NewStyle().
+	Foreground(lipgloss.AdaptiveColor{Light: "#542E71", Dark: "#F7FD04"})
+
+func gloss(s []string, branchPadding int, activeBranch bool, root bool, scheduleForRemoval bool) []string {
 	line := lipgloss.NewStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: "#2D4059", Dark: "#70A1D7"})
 
@@ -24,6 +27,12 @@ func gloss(s []string, branchPadding int, activeBranch bool, root bool) []string
 
 	name := lipgloss.NewStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: "#EA5455", Dark: "#F47C7C"})
+
+	// Special case when running prune. This lets us show users branches to be
+	// removed in the UI before they select them for removal.
+	if scheduleForRemoval {
+		name = prunableBranches
+	}
 
 	hash := lipgloss.NewStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: "#FCA3CC", Dark: "#F7F48B"})

@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/pinkluz/arcanist/cli"
+	"github.com/pinkluz/arcanist/lib/console"
 	"github.com/pinkluz/arcanist/lib/git"
 )
 
@@ -21,7 +22,28 @@ func (f *pruneCmd) run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Println(repo)
+	status, err := git.BranchesAvailableForRemoval(repo)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	graph, err := git.GetLocalBranchGraph(repo)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	prompt := console.DrawPrune()
+	fmt.Println()
+	fmt.Println(prompt)
+	fmt.Println()
+
+	out := console.DrawGraph(*graph, &console.DrawOpts{
+		AvailableForDelete: status.BranchesForRemoval,
+	})
+
+	fmt.Println(out)
 }
 
 func init() {

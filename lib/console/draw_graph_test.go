@@ -263,9 +263,7 @@ func TestComplexDrawGraph(t *testing.T) {
 		},
 	}
 
-	out := DrawGraph(*bnw, &DrawOpts{
-		NoColor: true,
-	})
+	out := DrawGraph(*bnw, &DrawOpts{})
 
 	expected := strings.TrimSpace(`
 main
@@ -311,9 +309,7 @@ func TestDrawLines(t *testing.T) {
 		Downstream: []*git.BranchNode{},
 	}
 
-	out := drawLine(DrawOpts{
-		NoColor: true,
-	}, node, 3, []int{2}, true, len(node.Name))
+	out := drawLine(DrawOpts{}, node, 3, []int{2}, true, len(node.Name))
 
 	expected := "  │└ main/branch-5-2-1                      0:0 [no commit message found]"
 

@@ -114,7 +114,7 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 				CommitsAhead:   infront,
 				CommitsBehind:  behind,
 				IsActiveBranch: branch.Name == currentBranch,
-				Upstream:       &BranchNode{},
+				Upstream:       nil,
 				Downstream:     make([]*BranchNode, 0),
 			},
 		}
@@ -139,7 +139,7 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 					MergeShort:     "",
 					RemoteName:     "",
 					IsActiveBranch: ref.Name().Short() == currentBranch,
-					Upstream:       &BranchNode{},
+					Upstream:       nil,
 					Downstream:     make([]*BranchNode, 0),
 				},
 			}

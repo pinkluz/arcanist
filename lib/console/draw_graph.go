@@ -26,7 +26,7 @@ const (
 // DrawGraphOpts is left for later when we want to allow the user some control
 // over the output. For now it's just empty.
 type DrawOpts struct {
-	NoColor bool // Option removed until someone requests this
+	AvailableForDelete []git.BranchNode
 }
 
 // DrawGraph takes a git.BranchNodeWrapper and renders the output for your
@@ -141,7 +141,7 @@ func drawLine(o DrawOpts, n *git.BranchNode,
 	// Edge case for when printing out a root node. We stop and return here
 	// and don't do a bunch of extra formatting.
 	if depth == 0 {
-		rootFmt := gloss([]string{}, 0, n.IsActiveBranch, true)
+		rootFmt := gloss([]string{}, 0, n.IsActiveBranch, true, false)
 		return fmt.Sprintf(strings.Join(rootFmt, ""), n.Name)
 	}
 
@@ -179,7 +179,8 @@ func drawLine(o DrawOpts, n *git.BranchNode,
 		"%s",  // commitMsg
 	}
 
-	fmtStr = gloss(fmtStr, branchPadding, n.IsActiveBranch, false)
+	scheduledForRemoval := selectedForRemoval(o.AvailableForDelete, *n)
+	fmtStr = gloss(fmtStr, branchPadding, n.IsActiveBranch, false, scheduledForRemoval)
 
 	hashRef := ""
 	if len(n.Hash) >= 8 {
@@ -188,4 +189,14 @@ func drawLine(o DrawOpts, n *git.BranchNode,
 
 	return fmt.Sprintf(strings.Join(fmtStr, ""),
 		graphLine, n.Name, hashRef, n.CommitsBehind, n.CommitsAhead, commitMsg)
+}
+
+func selectedForRemoval(nodes []git.BranchNode, node git.BranchNode) bool {
+	for _, n := range nodes {
+		if n.Name == node.Name {
+			return true
+		}
+	}
+
+	return false
 }
