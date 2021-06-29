@@ -101,9 +101,23 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 			infront = cherryOutput.InFront
 		}
 
+		// Special cases everywhere. Git is hard to work with.
+		isRootNode := false
+		switch {
+		case branch.Merge.String() == "":
+			isRootNode = true
+		case ref.Name().String() == "/"+branch.Merge.String():
+			isRootNode = true
+		}
+
+		branchUpstream := ""
+		if !isRootNode {
+			branchUpstream = branch.Merge.Short()
+		}
+
 		branchNodes[branch.Name] = branchNodeWrapper{
-			RootNode: branch.Merge.String() == "",
-			Upstream: branch.Merge.Short(),
+			RootNode: isRootNode,
+			Upstream: branchUpstream,
 			Node: &BranchNode{
 				Name:           branch.Name,
 				Merge:          branch.Merge.String(),
