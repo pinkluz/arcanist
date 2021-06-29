@@ -106,7 +106,7 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 		switch {
 		case branch.Merge.String() == "":
 			isRootNode = true
-		case ref.Name().String() == "/"+branch.Merge.String():
+		case branch.Remote != ".":
 			isRootNode = true
 		}
 
