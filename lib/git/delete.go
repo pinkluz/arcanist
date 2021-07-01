@@ -5,7 +5,8 @@ import (
 )
 
 type BranchesAvailableForRemovalStatus struct {
-	BranchesForRemoval []BranchNode
+	BranchesForRemoval    []BranchNode
+	FullGraphBeforeDelete *BranchNodeWrapper
 }
 
 func BranchesAvailableForRemoval(repo *gogit.Repository) (*BranchesAvailableForRemovalStatus, error) {
@@ -20,7 +21,8 @@ func BranchesAvailableForRemoval(repo *gogit.Repository) (*BranchesAvailableForR
 	}
 
 	return &BranchesAvailableForRemovalStatus{
-		BranchesForRemoval: toDelete,
+		BranchesForRemoval:    toDelete,
+		FullGraphBeforeDelete: bnw,
 	}, nil
 }
 

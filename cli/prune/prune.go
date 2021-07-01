@@ -53,6 +53,12 @@ func (f *pruneCmd) run(cmd *cobra.Command, args []string) {
 			fmt.Println(err)
 			os.Exit(1)
 		}
+
+		_, err := git.ReparentBranches(repo, *status)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 }
 
