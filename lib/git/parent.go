@@ -31,13 +31,21 @@ func ReparentBranches(repo *gogit.Repository,
 
 	localRepoPreDelete := preRemovedState.FullGraphBeforeDelete.BranchMap
 	for _, deletedBranch := range preRemovedState.BranchesForRemoval {
-		rmedNode := localRepoPreDelete[deletedBranch.Name]
-		newParent := getFirstLivingParent(rmedNode, preRemovedState.BranchesForRemoval)
 
-		fmt.Println(newParent)
+		rmedNode := localRepoPreDelete[deletedBranch.Name]
+		for _, upstream := range rmedNode.Downstream {
+
+			newParent := getFirstLivingParent(upstream.Upstream, preRemovedState.BranchesForRemoval)
+			if newParent != "" && !isDeletedBranch(upstream.Name, preRemovedState.BranchesForRemoval) {
+				err := SetBranchUpstream(upstream.Name, newParent)
+				if err != nil {
+					return nil, fmt.Errorf("Unable to set git branch -u %s %s"+err.Error(), newParent, upstream.Name)
+				}
+			}
+		}
 	}
 
-	return nil, nil
+	return &ReparentBranchesStatus{}, nil
 }
 
 // Find the first upstream branch of a given node provided it doesn't exist in the deletedBranches list

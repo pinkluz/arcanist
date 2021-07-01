@@ -123,3 +123,19 @@ func DeleteBranch(branch string) error {
 
 	return nil
 }
+
+func SetBranchUpstream(branch string, upstream string) error {
+	// cmd := exec.Command("git", "branch", "--delete", branch)
+	cmd := exec.Command("git", "branch", "-u", upstream, branch)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf(string(output))
+	}
+
+	return nil
+}
