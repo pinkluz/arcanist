@@ -1,9 +1,6 @@
 package shared
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/viper"
 )
 
@@ -20,10 +17,12 @@ func SetupConfig(file string) {
 		viper.SetConfigFile(file)
 	}
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		fmt.Printf("error loading config: %s \n", err)
-		os.Exit(1)
-	}
+	// TODO: config isn't actually used at all so removing this for now
+	//
+	// err := viper.ReadInConfig()
+	// if err != nil {
+	// 	fmt.Printf("error loading config: %s \n", err)
+	// 	os.Exit(1)
+	// }
 
 }
