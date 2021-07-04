@@ -24,6 +24,10 @@ Delete all branches where all commits in the branch are already contained in the
 
 <img width="560" alt="Screen Shot 2021-07-01 at 6 58 58 PM" src="https://user-images.githubusercontent.com/2604634/124201775-78b8d880-da9e-11eb-9097-0a3ee25db190.png">
 
-### diff / commit
+## graft
+
+Pull a branch from a given remote into your working tree.
+
+## diff / commit
 
 coming soon.
