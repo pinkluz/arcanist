@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/pinkluz/arcanist/lib/util"
 )
 
 // Wrapper around raw git commands. These should be replaced when a go-git version
@@ -167,6 +169,42 @@ func MergeBase(refOne string, refTwo string) (string, error) {
 		return "", fmt.Errorf(string(output))
 	}
 
-	return string(output), nil
+	// Windox/Nix compatible new line removal
+	lines := util.SplitLines(string(output))
 
+	if len(lines) < 1 {
+		return "", fmt.Errorf("Merge base didn't return any output")
+	}
+
+	return lines[0], nil
+}
+
+func CherryPick(refOne string, refTwo string) error {
+	cmd := exec.Command("git", "cherry-pick", fmt.Sprintf("%s..%s", refOne, refTwo))
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf(string(output))
+	}
+
+	return nil
+}
+
+func CherryPickAbort() error {
+	cmd := exec.Command("git", "cherry-pick", "--abort")
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf(string(output))
+	}
+
+	return nil
 }

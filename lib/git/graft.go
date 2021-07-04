@@ -31,15 +31,28 @@ func Graft(repo *gogit.Repository, bnw *BranchNodeWrapper,
 	}
 
 	// Checkout a new branch
-	// TODO: this
+	if localBranchName == "" {
+		localBranchName = fmt.Sprintf("graft/%s", branch)
+	}
+	err = CheckoutTrackRaw(localBranchName, ref.Name().Short())
+	if err != nil {
+		return fmt.Errorf("Unable to checkout branch it might already exist: %s", err)
+	}
 
 	// Apply all commits to the current branch
 	mergePoint, err := MergeBase(ref.Name().Short(), dest)
 	if err != nil {
+		DeleteBranch(localBranchName)
 		return fmt.Errorf("No common merge-point: %s", err)
 	}
 
-	fmt.Println(mergePoint)
+	err = CherryPick(mergePoint, dest)
+	if err != nil {
+		// Try to cleanup the working dir
+		CherryPickAbort()
+		DeleteBranch(localBranchName)
+		return fmt.Errorf("Uable to cherry-pick we tried to abort for you: %s", err)
+	}
 
 	return nil
 }
