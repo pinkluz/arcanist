@@ -1,6 +1,6 @@
 <h1 align="center">Arcanist CLI</h1>
 
-<p align="center">Opinionated git workflow tool based on Phabricators diff workflow</p>
+<p align="center">Git workflow tool based on the Phabricator workflow</p>
 
 <br/>
 
