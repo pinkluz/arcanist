@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "console",
+    srcs = [
+        "color.go",
+        "draw_cascade.go",
+        "draw_graph.go",
+        "draw_prune.go",
+    ],
+    importpath = "github.com/pinkluz/arcanist/lib/console",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lib/git",
+        "//lib/util",
+        "@com_github_charmbracelet_lipgloss//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "console_test",
+    srcs = ["draw_graph_test.go"],
+    embed = [":console"],
+    deps = ["//lib/git"],
+)

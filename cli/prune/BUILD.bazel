@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "prune",
+    srcs = ["prune.go"],
+    importpath = "github.com/pinkluz/arcanist/cli/prune",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//cli",
+        "//lib/console",
+        "//lib/git",
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)

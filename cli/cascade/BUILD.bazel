@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cascade",
+    srcs = ["cascade.go"],
+    importpath = "github.com/pinkluz/arcanist/cli/cascade",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//cli",
+        "//lib/console",
+        "//lib/git",
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)
