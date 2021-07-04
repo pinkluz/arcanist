@@ -26,14 +26,22 @@ func (f *graftCmd) run(cmd *cobra.Command, args []string) {
 
 	switch len(args) {
 	case 1:
-		err := git.Graft(repo, args[0], f.remote, f.localBranchName)
+		graph, err := git.GetLocalBranchGraph(repo)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 
-		fmt.Printf("Grafted '%s' into your local repo", args[0])
-		fmt.Println()
+		if graph != nil {
+			err := git.Graft(repo, graph, args[0], f.remote, f.localBranchName)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+
+			fmt.Printf("Grafted '%s' into your local repo", args[0])
+			fmt.Println()
+		}
 	default:
 		cmd.Help()
 		os.Exit(0)

@@ -125,7 +125,6 @@ func DeleteBranch(branch string) error {
 }
 
 func SetBranchUpstream(branch string, upstream string) error {
-	// cmd := exec.Command("git", "branch", "--delete", branch)
 	cmd := exec.Command("git", "branch", "-u", upstream, branch)
 
 	output, err := cmd.CombinedOutput()
@@ -138,4 +137,36 @@ func SetBranchUpstream(branch string, upstream string) error {
 	}
 
 	return nil
+}
+
+// git fetch origin mschuett/anotherone-3 +refs/heads/mschuett/anotherone-3:refs/remotes/graft/origin/mschuett/anotherone-3
+func FetchWithRefspec(remote string, branch string, refspec string) error {
+	cmd := exec.Command("git", "fetch", remote, branch, refspec)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return fmt.Errorf(string(output))
+	}
+
+	return nil
+}
+
+func MergeBase(refOne string, refTwo string) (string, error) {
+	cmd := exec.Command("git", "merge-base", refOne, refTwo)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return "", fmt.Errorf(string(output))
+	}
+
+	return string(output), nil
+
 }
