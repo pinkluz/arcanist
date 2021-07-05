@@ -6,6 +6,10 @@
 
 Arcanist is an local git workflow management tool that is based around local branch management. This allows you to easily keep ideas separate and swich between branches pushing the changes up to other branches with `cascade`. Using this tool should help to keep PRs/Diffs/Whatever to smaller sizes that are more easily reviewable.
 
+## Downloads
+
+You can find the latest release with several different binaries on the github.com/pinkluz/arcanist/releases page.
+
 ## flow [branch] [upstream]
 
 Outputs a graph of all your current branches that are tracking local branches to the CLI. When you pass a single argument to flow it will create a new branch and set it's upstream to the current branch. If the branch exists it will just check out that branch for you. If you pass two arguments to arc flow it will create a new branch and set it's upstream to the second argument instead of to the branch you are currently on.
