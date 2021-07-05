@@ -8,7 +8,7 @@ Arcanist is an local git workflow management tool that is based around local bra
 
 ## Downloads
 
-You can find the latest release with several different binaries on the github.com/pinkluz/arcanist/releases page.
+You can find the latest release with several different binaries on the https://github.com/pinkluz/arcanist/releases page.
 
 ## flow [branch] [upstream]
 
