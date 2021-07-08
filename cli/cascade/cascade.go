@@ -16,6 +16,11 @@ type cascadeCmd struct {
 }
 
 func (f *cascadeCmd) run(cmd *cobra.Command, args []string) {
+	if len(args) > 0 {
+		cmd.Help()
+		os.Exit(1)
+	}
+
 	repo, err := git.OpenRepo()
 	if err != nil {
 		fmt.Println(err)
@@ -38,7 +43,7 @@ func init() {
 		Use:   "cascade",
 		Short: "rebase all the way down the chain",
 		Long: `Discovers all dependencies that you have in your local branches and recursively trys to rebase
-		them based on the branch you run cascade from.`,
+them based on the branch you run cascade from.`,
 		Run: cascade.run,
 	}
 

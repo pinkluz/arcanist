@@ -61,7 +61,7 @@ func init() {
 		Use:   "flow",
 		Short: "Show your current working tree",
 		Long: `List all git branches that are tracking a local branch. Branches tracking remote braches
-		are ignored and don't fit in with the arc workflow.`,
+are ignored and don't fit in with the arc workflow.`,
 		Run: flow.run,
 	}
 

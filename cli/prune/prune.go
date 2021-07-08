@@ -68,7 +68,7 @@ func init() {
 		Use:   "prune",
 		Short: "Remove branches with no extra commits",
 		Long: `Prune looks at all of your current branches and by default will ask if you would like
-		to delete ones that have no additional commits compared to its parent branch.`,
+to delete ones that have no additional commits compared to its parent branch.`,
 		Run: prune.run,
 	}
 
