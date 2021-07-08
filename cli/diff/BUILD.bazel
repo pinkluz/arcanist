@@ -5,4 +5,9 @@ go_library(
     srcs = ["diff.go"],
     importpath = "github.com/pinkluz/arcanist/cli/diff",
     visibility = ["//visibility:public"],
+    deps = [
+        "//cli",
+        "//lib/git",
+        "@com_github_spf13_cobra//:cobra",
+    ],
 )

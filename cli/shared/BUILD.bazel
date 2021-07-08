@@ -5,5 +5,5 @@ go_library(
     srcs = ["config.go"],
     importpath = "github.com/pinkluz/arcanist/cli/shared",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_spf13_viper//:go_default_library"],
+    deps = ["@com_github_spf13_viper//:viper"],
 )

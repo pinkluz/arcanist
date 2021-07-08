@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//cli",
         "//cli/cascade",
+        "//cli/diff",
         "//cli/flow",
         "//cli/graft",
         "//cli/prune",
