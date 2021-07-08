@@ -2,6 +2,7 @@ package git
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -212,13 +213,20 @@ func CherryPickAbort() error {
 func CommitAmendRaw() error {
 	cmd := exec.Command("git", "commit", "--amend")
 
-	output, err := cmd.CombinedOutput()
+	env := os.Environ()
+	cmd.Env = env
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}
 
 	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
+		return fmt.Errorf("Commit amend failed")
 	}
 
 	return nil
@@ -227,13 +235,20 @@ func CommitAmendRaw() error {
 func CommitRaw() error {
 	cmd := exec.Command("git", "commit")
 
-	output, err := cmd.CombinedOutput()
+	env := os.Environ()
+	cmd.Env = env
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}
 
 	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
+		return fmt.Errorf("Commit failed")
 	}
 
 	return nil
