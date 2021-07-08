@@ -32,5 +32,22 @@ func Commit(repo *gogit.Repository, amend bool) error {
 		return fmt.Errorf("You are on a parent branch. Diff only works on child branches. Try git commit.")
 	}
 
+	out, err := RevListRaw(branch, node.MergeShort)
+	if err != nil {
+		return fmt.Errorf("Uable to get rev-list: %s", err.Error())
+	}
+
+	if out.InFront > 0 {
+		CommitAmendRaw()
+		if err != nil {
+			return fmt.Errorf("error amending commit: %s", err)
+		}
+	} else {
+		CommitRaw()
+		if err != nil {
+			return fmt.Errorf("error creating commit: %s", err)
+		}
+	}
+
 	return nil
 }

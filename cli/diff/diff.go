@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/pinkluz/arcanist/cli"
-	"github.com/pinkluz/arcanist/lib/console"
 	"github.com/pinkluz/arcanist/lib/git"
 )
 
@@ -22,13 +21,10 @@ func (f *diffCmd) run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	status, err := git.RecursiveRebase(repo)
+	err = git.Commit(repo, true)
 	if err != nil {
 		fmt.Println(err)
-	}
-
-	if status != nil {
-		fmt.Println(console.DrawCascade(*status, nil))
+		os.Exit(1)
 	}
 }
 
