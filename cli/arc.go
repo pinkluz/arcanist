@@ -6,20 +6,20 @@ import (
 	"github.com/pinkluz/arcanist/cli/shared"
 )
 
-var base *liliumCmd
+var base *arcCmd
 
-type liliumCmd struct {
+type arcCmd struct {
 	cmd *cobra.Command
 
 	config string
 }
 
-func (lc *liliumCmd) perprerun(cmd *cobra.Command, args []string) {
+func (lc *arcCmd) perprerun(cmd *cobra.Command, args []string) {
 	shared.SetupConfig(lc.config)
 }
 
 func init() {
-	base = &liliumCmd{}
+	base = &arcCmd{}
 	base.cmd = &cobra.Command{
 		Use:   "arc",
 		Short: "arc is a git workflow management tool",
