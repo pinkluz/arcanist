@@ -76,11 +76,6 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 	for _, branch := range config.Branches {
 		// This might need to be a bit more complex but seems to work for every use case I can
 		// currently think of.
-		// ref, err := repo.Reference(plumbing.ReferenceName("/refs/heads/"+branch.Name), true)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("Uable to get branch reference for %s: %s", branch.Name, err.Error())
-		// }
-
 		hash, err := RevParseRaw(branch.Name)
 		if err != nil {
 			return nil, fmt.Errorf("Uable to get branch reference for %s: %s", branch.Name, err.Error())
