@@ -253,3 +253,23 @@ func CommitRaw() error {
 
 	return nil
 }
+
+func RevParseRaw(ref string) (string, error) {
+	cmd := exec.Command("git", "rev-parse", ref)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return "", fmt.Errorf(string(output))
+	}
+
+	lines := util.SplitLines(string(output))
+	if len(lines) < 1 {
+		return "", fmt.Errorf("No output returned from rev-parse")
+	}
+
+	return lines[0], nil
+}
