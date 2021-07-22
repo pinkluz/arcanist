@@ -19,6 +19,21 @@ type RevListOutput struct {
 	Behind  int
 }
 
+func execNonInteractive(cmdStr []string) (string, error) {
+	cmd := exec.Command("git", cmdStr...)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+
+	if cmd.ProcessState.ExitCode() != 0 {
+		return "", fmt.Errorf(string(output))
+	}
+
+	return string(output), nil
+}
+
 // Return the difference in commits between two branches. The following examples shows
 // all commits that are different between mschuett/testing and main
 //
@@ -31,15 +46,14 @@ func RevListRaw(current string, upstream string) (*RevListOutput, error) {
 		Behind:  0,
 	}
 
-	cmd := exec.Command("git", "rev-list", "--left-right", "--count",
-		fmt.Sprintf("%s...%s", upstream, current))
-
-	stdout, err := cmd.Output()
+	stdout, err := execNonInteractive([]string{
+		"rev-list", "--left-right", "--count",
+		fmt.Sprintf("%s...%s", upstream, current)})
 	if err != nil {
 		return nil, err
 	}
 
-	split := strings.Fields(string(stdout))
+	split := strings.Fields(stdout)
 
 	if len(split) == 2 {
 		behind, _ := strconv.Atoi(split[0])
@@ -53,90 +67,55 @@ func RevListRaw(current string, upstream string) (*RevListOutput, error) {
 }
 
 func CheckoutTrackRaw(branch string, upstream string) error {
-	cmd := exec.Command("git", "checkout", "--track", upstream, "-b", branch)
-
-	output, err := cmd.CombinedOutput()
+	_, err := execNonInteractive([]string{
+		"checkout", "--track", upstream, "-b", branch})
 	if err != nil {
 		return err
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
 	}
 
 	return nil
 }
 
 func CheckoutRaw(branch string) error {
-	cmd := exec.Command("git", "checkout", branch)
-
-	output, err := cmd.CombinedOutput()
+	_, err := execNonInteractive([]string{"checkout", branch})
 	if err != nil {
 		return err
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
 	}
 
 	return nil
 }
 
 func PullRebase() error {
-	cmd := exec.Command("git", "pull", "--rebase")
-
-	output, err := cmd.CombinedOutput()
+	_, err := execNonInteractive([]string{"pull", "--rebase"})
 	if err != nil {
 		return err
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
 	}
 
 	return nil
 }
 
 func AbortRebase() error {
-	cmd := exec.Command("git", "rebase", "--abort")
-
-	output, err := cmd.CombinedOutput()
+	_, err := execNonInteractive([]string{"rebase", "--abort"})
 	if err != nil {
 		return err
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
 	}
 
 	return nil
 }
 
 func DeleteBranch(branch string) error {
-	cmd := exec.Command("git", "branch", "--delete", branch)
-
-	output, err := cmd.CombinedOutput()
+	_, err := execNonInteractive([]string{"branch", "--delete", branch})
 	if err != nil {
 		return err
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
 	}
 
 	return nil
 }
 
 func SetBranchUpstream(branch string, upstream string) error {
-	cmd := exec.Command("git", "branch", "-u", upstream, branch)
-
-	output, err := cmd.CombinedOutput()
+	_, err := execNonInteractive([]string{"branch", "-u", upstream, branch})
 	if err != nil {
 		return err
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
 	}
 
 	return nil
@@ -144,34 +123,22 @@ func SetBranchUpstream(branch string, upstream string) error {
 
 // git fetch origin mschuett/anotherone-3 +refs/heads/mschuett/anotherone-3:refs/remotes/graft/origin/mschuett/anotherone-3
 func FetchWithRefspec(remote string, branch string, refspec string) error {
-	cmd := exec.Command("git", "fetch", remote, branch, refspec)
-
-	output, err := cmd.CombinedOutput()
+	_, err := execNonInteractive([]string{"fetch", remote, branch, refspec})
 	if err != nil {
 		return err
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
 	}
 
 	return nil
 }
 
 func MergeBase(refOne string, refTwo string) (string, error) {
-	cmd := exec.Command("git", "merge-base", refOne, refTwo)
-
-	output, err := cmd.CombinedOutput()
+	output, err := execNonInteractive([]string{"merge-base", refOne, refTwo})
 	if err != nil {
 		return "", err
 	}
 
-	if cmd.ProcessState.ExitCode() != 0 {
-		return "", fmt.Errorf(string(output))
-	}
-
 	// Windox/Nix compatible new line removal
-	lines := util.SplitLines(string(output))
+	lines := util.SplitLines(output)
 
 	if len(lines) < 1 {
 		return "", fmt.Errorf("Merge base didn't return any output")
@@ -181,30 +148,19 @@ func MergeBase(refOne string, refTwo string) (string, error) {
 }
 
 func CherryPick(refOne string, refTwo string) error {
-	cmd := exec.Command("git", "cherry-pick", fmt.Sprintf("%s..%s", refOne, refTwo))
-
-	output, err := cmd.CombinedOutput()
+	_, err := execNonInteractive([]string{
+		"cherry-pick", fmt.Sprintf("%s..%s", refOne, refTwo)})
 	if err != nil {
 		return err
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
 	}
 
 	return nil
 }
 
 func CherryPickAbort() error {
-	cmd := exec.Command("git", "cherry-pick", "--abort")
-
-	output, err := cmd.CombinedOutput()
+	_, err := execNonInteractive([]string{"cherry-pick", "--abort"})
 	if err != nil {
 		return err
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		return fmt.Errorf(string(output))
 	}
 
 	return nil
@@ -255,18 +211,12 @@ func CommitRaw() error {
 }
 
 func RevParseRaw(ref string) (string, error) {
-	cmd := exec.Command("git", "rev-parse", ref)
-
-	output, err := cmd.CombinedOutput()
+	output, err := execNonInteractive([]string{"rev-parse", ref})
 	if err != nil {
 		return "", err
 	}
 
-	if cmd.ProcessState.ExitCode() != 0 {
-		return "", fmt.Errorf(string(output))
-	}
-
-	lines := util.SplitLines(string(output))
+	lines := util.SplitLines(output)
 	if len(lines) < 1 {
 		return "", fmt.Errorf("No output returned from rev-parse")
 	}
