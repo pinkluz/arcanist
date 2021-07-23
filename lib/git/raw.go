@@ -24,7 +24,7 @@ func execNonInteractive(cmdStr []string) (string, error) {
 	cmd := exec.Command("git", cmdStr...)
 
 	if globals.GetTrace() {
-		fmt.Fprintln(os.Stderr, "trace:", cmd.Path, strings.Join(cmd.Args, " "))
+		fmt.Fprintln(os.Stderr, "trace:", strings.Join(cmd.Args, " "))
 	}
 
 	output, err := cmd.CombinedOutput()
