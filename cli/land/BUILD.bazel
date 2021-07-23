@@ -1,13 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "cli",
-    srcs = ["arc.go"],
-    importpath = "github.com/pinkluz/arcanist/cli",
+    name = "land",
+    srcs = ["land.go"],
+    importpath = "github.com/pinkluz/arcanist/cli/land",
     visibility = ["//visibility:public"],
     deps = [
-        "//cli/shared",
-        "//lib/globals",
+        "//cli",
         "@com_github_spf13_cobra//:cobra",
     ],
 )
