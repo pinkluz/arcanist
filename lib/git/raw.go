@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pinkluz/arcanist/lib/globals"
 	"github.com/pinkluz/arcanist/lib/util"
 )
 
@@ -21,6 +22,10 @@ type RevListOutput struct {
 
 func execNonInteractive(cmdStr []string) (string, error) {
 	cmd := exec.Command("git", cmdStr...)
+
+	if globals.GetTrace() {
+		fmt.Fprintln(os.Stderr, "trace:", cmd.Path, strings.Join(cmd.Args, " "))
+	}
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
