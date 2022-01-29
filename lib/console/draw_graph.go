@@ -39,7 +39,7 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawOpts) string {
 
 	// Not much to do here
 	if bnw.IsEmpty() {
-		return "Nothing found to render"
+		return "No branches found"
 	}
 
 	// This could be part of the recursive drawLine call but is pulled out to
