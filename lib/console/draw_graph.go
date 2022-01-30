@@ -42,11 +42,13 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawOpts) string {
 		return "No branches found"
 	}
 
+	maxDepth := bnw.MaxDepth()
+
 	// This could be part of the recursive drawLine call but is pulled out to
 	// reduce the complexity and allow me to understand this when I read it later.
 	lines := []string{}
 	for _, node := range bnw.RootNodes {
-		lines = append(lines, walkNodes(internalOpts, node, 0, []int{}, false, bnw.LongestBranchLength)...)
+		lines = append(lines, walkNodes(internalOpts, node, 0, []int{}, false, bnw.LongestBranchLength, maxDepth)...)
 	}
 
 	output := strings.Join(lines, "\n")
@@ -55,7 +57,7 @@ func DrawGraph(bnw git.BranchNodeWrapper, opts *DrawOpts) string {
 
 // Render a single line of the flow output
 func walkNodes(o *DrawOpts, n *git.BranchNode, depth int,
-	openDepths []int, cap bool, longestBranch int) []string {
+	openDepths []int, cap bool, longestBranch int, maxDepth int) []string {
 
 	var lines []string
 
@@ -70,7 +72,7 @@ func walkNodes(o *DrawOpts, n *git.BranchNode, depth int,
 	// If this is a root node we don't output much information for it. If you are using flow
 	// like intended this should matter but may lead to some confusion if you start committing
 	// to a root branch (likely main or master).
-	lines = append(lines, drawLine(*o, n, depth, openDepths, cap, longestBranch))
+	lines = append(lines, drawLine(*o, n, depth, openDepths, cap, longestBranch, maxDepth))
 
 	if len(n.Downstream) > 0 {
 		for i, node := range n.Downstream {
@@ -81,7 +83,7 @@ func walkNodes(o *DrawOpts, n *git.BranchNode, depth int,
 				cap = true
 			}
 
-			lines = append(lines, walkNodes(o, node, depth+1, openDepths, cap, longestBranch)...)
+			lines = append(lines, walkNodes(o, node, depth+1, openDepths, cap, longestBranch, maxDepth)...)
 		}
 	}
 
@@ -120,8 +122,8 @@ func isDepthOpen(openDepths []int, depth int) bool {
 }
 
 // draw a single line taking into account all of the options passed in
-func drawLine(o DrawOpts, n *git.BranchNode,
-	depth int, openDepths []int, cap bool, longestBranch int) string {
+func drawLine(o DrawOpts, n *git.BranchNode, depth int,
+	openDepths []int, cap bool, longestBranch int, maxDepth int) string {
 
 	padding := ""
 
@@ -152,12 +154,12 @@ func drawLine(o DrawOpts, n *git.BranchNode,
 	}
 
 	defaultBranchPadding := 40
-	if defaultBranchPadding < longestBranch {
+	if defaultBranchPadding < (longestBranch + maxDepth) {
 		// +3 is notable here because the padding is used with strings.Repeat which can't have
 		// a negative number. We do +1 because we want a space between the branch name and whatever
 		// comes after it. We do another +2 because if it's the active branch we need to leave space
-		// for the current branch market to be rendered and leave a space on both sides.
-		defaultBranchPadding = longestBranch + 3
+		// for the current branch marker to be rendered and leave a space on both sides.
+		defaultBranchPadding = longestBranch + maxDepth + 3
 	}
 
 	// Padding to add to the end of every branch name. This should be a reasonable number

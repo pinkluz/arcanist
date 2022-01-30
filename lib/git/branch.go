@@ -12,6 +12,19 @@ func (b BranchNodeWrapper) IsEmpty() bool {
 	return len(b.RootNodes) == 0
 }
 
+func (b BranchNodeWrapper) MaxDepth() int {
+	max := 0
+
+	for _, x := range b.RootNodes {
+		depth := x.MaxDepth()
+		if depth > max {
+			max = depth
+		}
+	}
+
+	return max
+}
+
 type BranchNode struct {
 	Name       string
 	Merge      string
@@ -67,4 +80,30 @@ func (b BranchNode) CountDownstreams() int {
 	}
 
 	return r(b)
+}
+
+func (b BranchNode) maxDepth(i int) int {
+	max := i
+	for _, x := range b.Downstream {
+		i++
+		depth := x.maxDepth(i)
+		if depth > max {
+			max = depth
+		}
+	}
+
+	return max
+}
+
+// MaxDepth looks for the longest path from this branch
+func (b BranchNode) MaxDepth() int {
+	max := 0
+	for _, x := range b.Downstream {
+		depth := x.maxDepth(0)
+		if depth > max {
+			max = depth
+		}
+	}
+
+	return max
 }
