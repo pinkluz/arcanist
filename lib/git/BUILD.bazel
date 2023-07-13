@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "git",
@@ -23,4 +23,11 @@ go_library(
         "@com_github_go_git_go_git_v5//:go-git",
         "@com_github_go_git_go_git_v5//plumbing",
     ],
+)
+
+go_test(
+    name = "git_test",
+    srcs = ["branch_test.go"],
+    embed = [":git"],
+    deps = [],
 )

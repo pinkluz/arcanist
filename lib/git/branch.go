@@ -58,9 +58,10 @@ func (b BranchNode) IsRoot() bool {
 // in the following graph output by flow...
 //
 // master
-//  ├ mschuett/trash-test                                                 c9d98532 1:1 lol
-//  └ mschuett/off-master                                                 539c188a 0:0 wowowowowo
-//   └ mschuett/off-master-2                                              539c188a 0:0 wowowowowo
+//
+//	├ mschuett/trash-test                                                 c9d98532 1:1 lol
+//	└ mschuett/off-master                                                 539c188a 0:0 wowowowowo
+//	 └ mschuett/off-master-2                                              539c188a 0:0 wowowowowo
 //
 // CountDownstreams(master) -> 3
 // CountDownstreams(mschuett/off-master) -> 1
@@ -99,7 +100,9 @@ func (b BranchNode) maxDepth(i int) int {
 func (b BranchNode) MaxDepth() int {
 	max := 0
 	for _, x := range b.Downstream {
-		depth := x.maxDepth(0)
+		// Max depth needs to start at 1 because it won't enter this unless
+		// the branch has a downstream to begin with.
+		depth := x.maxDepth(1)
 		if depth > max {
 			max = depth
 		}

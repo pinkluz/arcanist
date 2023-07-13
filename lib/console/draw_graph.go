@@ -170,6 +170,12 @@ func drawLine(o DrawOpts, n *git.BranchNode, depth int,
 		branchPadding = branchPadding - 1
 	}
 
+	// If somehow I still messed up all the calculations in some edge cases make sure
+	// that branchPadding is never passed as a number less than 0 or the program panics.
+	if branchPadding < 0 {
+		branchPadding = 0
+	}
+
 	fmtStr := []string{
 		padding,
 		"%s ", // graphLine
