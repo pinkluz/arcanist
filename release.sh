@@ -8,6 +8,7 @@ builds=(
 "openbsd_amd64"
 "netbsd_amd64"
 "linux_amd64"
+"linux_arm64"
 "freebsd_amd64"
 "darwin_amd64")
 
@@ -26,6 +27,6 @@ for arch in "${builds[@]}"; do
 
   # Not sure how to fix but bazel decided to change this path to something stupid instead of providing
   # an easy way to find builds for different platforms.
-  cp -f $(pwd)/bazel-out/darwin_arm64-fastbuild-_$arch/bin/cmd/arc/arc_/arc $(pwd)/${releases}/arc_$arch
+  cp -f $(pwd)/bazel-bin/cmd/arc/arc_/arc $(pwd)/${releases}/arc_$arch
 done
 
