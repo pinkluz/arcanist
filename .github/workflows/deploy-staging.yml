@@ -1,0 +1,31 @@
+name: Deploy staging
+on:
+  workflow_dispatch:
+    inputs:
+      greenlight_version:
+        required: false
+        type: string
+      greenlight_commit_sha:
+        required: false
+        type: string
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.greenlight_commit_sha || github.ref }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Race-detector tests
+        run: go test -race ./...
+      - name: Build and execute the binary
+        run: |
+          CGO_ENABLED=0 go build -trimpath -o arc ./cmd/arc
+          ./arc --help
+          ./arc flow --help
+      - name: Record verified build
+        run: echo "Verified ${{ inputs.greenlight_version || 'manual' }} at ${{ inputs.greenlight_commit_sha || github.sha }}: binary builds and runs" >> "$GITHUB_STEP_SUMMARY"

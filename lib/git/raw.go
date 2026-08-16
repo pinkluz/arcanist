@@ -33,7 +33,7 @@ func execNonInteractive(cmdStr []string) (string, error) {
 	}
 
 	if cmd.ProcessState.ExitCode() != 0 {
-		return "", fmt.Errorf(string(output))
+		return "", fmt.Errorf("%s", output)
 	}
 
 	return string(output), nil

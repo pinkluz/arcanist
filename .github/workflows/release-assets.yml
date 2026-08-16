@@ -1,0 +1,43 @@
+name: Release assets
+# Greenlight creates the GitHub release (tag + notes) when a release goes
+# live; this attaches the real binaries to it — the same set release.sh
+# produces, named identically (arc_<os>_<arch>).
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build all platforms
+        run: |
+          set -euo pipefail
+          platforms=(
+            "linux amd64"
+            "linux arm64"
+            "darwin amd64"
+            "darwin arm64"
+            "freebsd amd64"
+            "openbsd amd64"
+            "netbsd amd64"
+          )
+          for platform in "${platforms[@]}"; do
+            read -r goos goarch <<< "$platform"
+            echo "building arc_${goos}_${goarch}"
+            CGO_ENABLED=0 GOOS="$goos" GOARCH="$goarch" \
+              go build -trimpath -ldflags "-s -w" -o "arc_${goos}_${goarch}" ./cmd/arc
+          done
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" arc_* --clobber
