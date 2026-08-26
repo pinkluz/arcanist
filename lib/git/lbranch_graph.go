@@ -12,33 +12,32 @@ import (
 // branches ignoring any remote branch tracking.
 
 func GetLocalBranchGraph(repo *gogit.Repository) (*BranchNodeWrapper, error) {
-	bnw := &BranchNodeWrapper{
-		RootNodes:           []*BranchNode{},
-		BranchMap:           map[string]*BranchNode{},
-		LongestBranchLength: 0,
-	}
-
 	branches, err := composeBranchNodes(repo)
 	if err != nil {
-		return nil, fmt.Errorf("Uable to composeBranchNodes: %s", err.Error())
+		return nil, fmt.Errorf("unable to composeBranchNodes: %w", err)
+	}
+
+	bnw := &BranchNodeWrapper{
+		RootNodes: []*BranchNode{},
+		BranchMap: map[string]*BranchNode{},
 	}
 
 	for _, branch := range branches {
-		if len(branch.Node.Name) > bnw.LongestBranchLength {
-			bnw.LongestBranchLength = len(branch.Node.Name)
+		if len(branch.node.Name) > bnw.LongestBranchLength {
+			bnw.LongestBranchLength = len(branch.node.Name)
 		}
 
-		bnw.BranchMap[branch.Node.Name] = branch.Node
-		// Make sure it's a root node and that some other branch cares about it
-		// being in the graph. If it has no downstream it isn't being used at all.
-		if branch.RootNode && len(branch.Node.Downstream) > 0 {
-			bnw.RootNodes = append(bnw.RootNodes, branch.Node)
+		bnw.BranchMap[branch.node.Name] = branch.node
+
+		// Only surface root nodes that some other branch hangs off of. A root
+		// with no downstream isn't part of any stack and would just be noise.
+		if branch.upstream == "" && len(branch.node.Downstream) > 0 {
+			bnw.RootNodes = append(bnw.RootNodes, branch.node)
 		}
 	}
 
-	// Sort the RootNodes for predictable output all of the downstreams have already been
-	// sorted during thr call to composeBranchNodes and we can't finish the sorting until
-	// the RootNodes have been placed in the BranchNodeWrapper.
+	// Downstreams are already sorted by composeBranchNodes; the root nodes
+	// can only be sorted here once they have all been collected.
 	sort.Slice(bnw.RootNodes, func(i, j int) bool {
 		return bnw.RootNodes[i].Name > bnw.RootNodes[j].Name
 	})
@@ -46,26 +45,23 @@ func GetLocalBranchGraph(repo *gogit.Repository) (*BranchNodeWrapper, error) {
 	return bnw, nil
 }
 
-type branchNodeWrapper struct {
-	RootNode bool
-	Upstream string
-	Node     *BranchNode
+// localBranch pairs a BranchNode with the name of the local branch it tracks
+// ("" for root branches) until the graph pointers are wired up.
+type localBranch struct {
+	upstream string
+	node     *BranchNode
 }
 
-// Build a tree of all branches and how they connect to each other
-func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, error) {
+// Build a tree of all branches and how they connect to each other.
+func composeBranchNodes(repo *gogit.Repository) (map[string]localBranch, error) {
 	config, err := repo.Config()
 	if err != nil {
-		return nil, fmt.Errorf("Uable to get repo config: %s", err.Error())
+		return nil, fmt.Errorf("unable to get repo config: %w", err)
 	}
-
-	// Temp struct to allow us to quickly create the graph at
-	// the expense of a tiny bit more memory.
-	branchNodes := map[string]branchNodeWrapper{}
 
 	head, err := repo.Head()
 	if err != nil {
-		return nil, fmt.Errorf("Uable to get repo head: %s", err.Error())
+		return nil, fmt.Errorf("unable to get repo head: %w", err)
 	}
 
 	currentBranch := ""
@@ -73,119 +69,112 @@ func composeBranchNodes(repo *gogit.Repository) (map[string]branchNodeWrapper, e
 		currentBranch = head.Name().Short()
 	}
 
+	branchNodes := map[string]localBranch{}
+
+	// Branches with tracking information configured. Only these can hang off
+	// another branch in the graph.
 	for _, branch := range config.Branches {
-		// This might need to be a bit more complex but seems to work for every use case I can
-		// currently think of.
 		hash, err := RevParseRaw(branch.Name)
 		if err != nil {
-			return nil, fmt.Errorf("Uable to get branch reference for %s: %s", branch.Name, err.Error())
+			return nil, fmt.Errorf("unable to get branch reference for %s: %w", branch.Name, err)
 		}
 
 		commit, err := repo.CommitObject(plumbing.NewHash(hash))
 		if err != nil {
-			return nil, fmt.Errorf("Uable to get commitObject: %s", err.Error())
+			return nil, fmt.Errorf("unable to get commit for %s: %w", branch.Name, err)
 		}
 
-		infront := 0
-		behind := 0
-		// Check if the branch merge point exists still. This happens if you delete a branch with a dependency but
-		// don't clean it up. In this case we just skip trying to get the rev-list which will throw an error.
-		_, err = repo.Reference(plumbing.ReferenceName(branch.Merge.String()), true)
-		if branch.Merge.String() != "" && err == nil {
-			cherryOutput, err := RevListRaw(branch.Name, branch.Merge.String())
-			if err != nil {
-				return nil, fmt.Errorf("Uable to get rev-list: %s", err.Error())
+		// A branch is only part of a stack when it tracks another local
+		// branch (remote "."). No upstream at all, or an upstream on a real
+		// remote, makes it a root of the graph.
+		upstream := ""
+		if branch.Merge != "" && branch.Remote == "." {
+			upstream = branch.Merge.Short()
+		}
+
+		ahead, behind := 0, 0
+		// The merge point can be gone if a branch with dependents was deleted
+		// but never cleaned up. Skip the rev-list in that case since it would
+		// throw an error.
+		if branch.Merge != "" {
+			if _, err := repo.Reference(branch.Merge, true); err == nil {
+				revList, err := RevListRaw(branch.Name, branch.Merge.String())
+				if err != nil {
+					return nil, fmt.Errorf("unable to get rev-list for %s: %w", branch.Name, err)
+				}
+
+				ahead = revList.InFront
+				behind = revList.Behind
 			}
-
-			behind = cherryOutput.Behind
-			infront = cherryOutput.InFront
 		}
 
-		// Special cases everywhere. Git is hard to work with.
-		isRootNode := false
-		switch {
-		case branch.Merge.String() == "":
-			isRootNode = true
-		case branch.Remote != ".":
-			isRootNode = true
-		}
-
-		branchUpstream := ""
-		if !isRootNode {
-			branchUpstream = branch.Merge.Short()
-		}
-
-		branchNodes[branch.Name] = branchNodeWrapper{
-			RootNode: isRootNode,
-			Upstream: branchUpstream,
-			Node: &BranchNode{
+		branchNodes[branch.Name] = localBranch{
+			upstream: upstream,
+			node: &BranchNode{
 				Name:           branch.Name,
 				Merge:          branch.Merge.String(),
 				MergeShort:     branch.Merge.Short(),
 				RemoteName:     branch.Remote,
 				Hash:           hash,
 				CommitMsg:      commit.Message,
-				CommitsAhead:   infront,
+				CommitsAhead:   ahead,
 				CommitsBehind:  behind,
 				IsActiveBranch: branch.Name == currentBranch,
-				Upstream:       nil,
-				Downstream:     make([]*BranchNode, 0),
+				Downstream:     []*BranchNode{},
 			},
 		}
 	}
 
-	// Not all branches that are tracking in your repo will be listed in your config.
-	// Get all known branches to make sure we have everything.
+	// Not all branches in your repo have tracking config. Walk all known
+	// branches and add the missing ones as roots.
 	branches, err := repo.Branches()
 	if err != nil {
-		return nil, fmt.Errorf("Uable to get braches: %s", err.Error())
+		return nil, fmt.Errorf("unable to get branches: %w", err)
 	}
 
-	branches.ForEach(func(ref *plumbing.Reference) error {
-		_, ok := branchNodes[ref.Name().Short()]
-		if !ok {
-			branchNodes[ref.Name().Short()] = branchNodeWrapper{
-				RootNode: true,
-				Upstream: "",
-				Node: &BranchNode{
-					Name:           ref.Name().Short(),
-					Merge:          "",
-					MergeShort:     "",
-					RemoteName:     "",
-					IsActiveBranch: ref.Name().Short() == currentBranch,
-					Upstream:       nil,
-					Downstream:     make([]*BranchNode, 0),
-				},
-			}
+	err = branches.ForEach(func(ref *plumbing.Reference) error {
+		name := ref.Name().Short()
+		if _, ok := branchNodes[name]; ok {
+			return nil
+		}
+
+		branchNodes[name] = localBranch{
+			node: &BranchNode{
+				Name:           name,
+				IsActiveBranch: name == currentBranch,
+				Downstream:     []*BranchNode{},
+			},
 		}
 
 		return nil
 	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to walk branches: %w", err)
+	}
 
-	// Set all upstream and downstreams in the BranchNodes now that we have
-	// fully populated all branches.
-	for _, tmpBranch := range branchNodes {
-		// if branch upstream doesn't exist just skip it. This means that the branch upstream
-		// was deleted but child branches were not cleaned up.
-		branchUpstream, ok := branchNodes[tmpBranch.Upstream]
+	// Now that every branch has a node, wire up the upstream and downstream
+	// pointers. A branch whose upstream no longer exists (deleted but not
+	// cleaned up) is left unlinked.
+	for _, branch := range branchNodes {
+		if branch.upstream == "" {
+			continue
+		}
+
+		parent, ok := branchNodes[branch.upstream]
 		if !ok {
 			continue
 		}
 
-		if !tmpBranch.RootNode {
-			tmpBranch.Node.Upstream = branchUpstream.Node
-		}
+		branch.node.Upstream = parent.node
+		parent.node.Downstream = append(parent.node.Downstream, branch.node)
+	}
 
-		if tmpBranch.Upstream != "" {
-			branchUpstream.Node.Downstream =
-				append(branchUpstream.Node.Downstream, tmpBranch.Node)
-
-			// Sort the slice for sanity when being used later to graph to console
-			sort.Slice(branchUpstream.Node.Downstream, func(i, j int) bool {
-				return branchUpstream.Node.Downstream[i].Name >
-					branchUpstream.Node.Downstream[j].Name
-			})
-		}
+	// Sort every downstream list for predictable graph output.
+	for _, branch := range branchNodes {
+		downstream := branch.node.Downstream
+		sort.Slice(downstream, func(i, j int) bool {
+			return downstream[i].Name > downstream[j].Name
+		})
 	}
 
 	return branchNodes, nil
